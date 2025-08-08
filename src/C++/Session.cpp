@@ -606,6 +606,15 @@ bool Session::sendRaw(Message &message, SEQNUM num) {
   }
 }
 
+bool Session::sendRaw(const std::string &string) {
+  if (!m_pResponder) {
+    return false;
+  }
+  m_state.onOutgoing(string);
+  m_state.incrNextSenderMsgSeqNum();
+  return m_pResponder->send(string);
+}
+
 bool Session::send(const std::string &string) {
   if (!m_pResponder) {
     return false;
@@ -613,6 +622,7 @@ bool Session::send(const std::string &string) {
   m_state.onOutgoing(string);
   return m_pResponder->send(string);
 }
+
 
 void Session::disconnect() {
   Locker l(m_mutex);

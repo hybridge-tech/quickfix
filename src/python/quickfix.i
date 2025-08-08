@@ -327,6 +327,7 @@ class ThreadedSocketAcceptor(ThreadedSocketAcceptorBase):
     self.logFactory = logFactory
 
 #if (HAVE_SSL > 0)
+
 class SSLSocketInitiator(SSLSocketInitiatorBase):
   application = 0
   storeFactory = 0

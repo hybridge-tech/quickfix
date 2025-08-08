@@ -65,7 +65,7 @@ public:
     m_state.logoutReason(reason);
   }
   bool isEnabled() { return m_state.enabled(); }
-
+  bool sendRaw(const std::string& message);
   bool sentLogon() { return m_state.sentLogon(); }
   bool sentLogout() { return m_state.sentLogout(); }
   bool receivedLogon() { return m_state.receivedLogon(); }
@@ -229,8 +229,7 @@ private:
 
   static bool addSession(Session &);
   static void removeSession(Session &);
-
-  bool send(const std::string &);
+  bool send(const std::string& message);
   bool sendRaw(Message &, SEQNUM msgSeqNum = 0);
   bool resend(Message &message);
   void persist(const Message &, const std::string &) EXCEPT(IOException);

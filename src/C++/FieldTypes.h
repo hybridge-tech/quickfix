@@ -501,7 +501,6 @@ public:
   static UtcTimeStamp now() { return UtcTimeStamp(DateTime::nowUtc()); }
 
   /// Defaults to the current date and time
-  [[deprecated("Use UtcTimeStamp::now()")]]
   UtcTimeStamp()
       : DateTime(DateTime::nowUtc()) {}
 

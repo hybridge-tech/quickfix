@@ -1,6 +1,6 @@
 #ifndef HAVE_MYSQL
 
-#include "Utility.h"
+#include "Utility2.h"
 
 class MYSQL {};
 

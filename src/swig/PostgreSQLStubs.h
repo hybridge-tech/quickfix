@@ -1,6 +1,6 @@
 #ifndef HAVE_POSTGRESQL
 
-#include "Utility.h"
+#include "Utility2.h"
 
 class PGconn {};
 
