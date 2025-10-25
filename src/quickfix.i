@@ -31,6 +31,7 @@ namespace std
 %rename(SocketInitiatorBase) FIX::SocketInitiator;
 %rename(SocketAcceptorBase) FIX::SocketAcceptor;
 %rename(SSLSocketInitiatorBase) FIX::SSLSocketInitiator;
+%rename(ThreadedSSLSocketInitiatorBase) FIX::ThreadedSSLSocketInitiator;
 %rename(SSLSocketAcceptorBase) FIX::SSLSocketAcceptor;
 %rename(ThreadedSocketInitiatorBase) FIX::ThreadedSocketInitiator;
 %rename(ThreadedSocketAcceptorBase) FIX::ThreadedSocketAcceptor;
@@ -69,7 +70,48 @@ namespace std
 #include <Dictionary.h>
 #include <SessionSettings.h>
 #include <Session.h>
-#include <Log.h>
+%}
+// --- BEGIN CUSTOM PATCH: sendRawDict exposure ----------------------------
+
+// SWIG interface includes (must be outside the %{ %} block)
+%include <std_string.i>
+%include <std_pair.i>
+%include <std_vector.i>
+
+namespace std {
+    %template(IntStringPair) pair<int,std::string>;
+    %template(IntStringPairVector) vector<pair<int,std::string>>;
+}
+// Instantiate std::map<std::string, std::string>
+%include <std_map.i>
+
+namespace std {
+    %template(StringStringPairVector) vector<pair<std::string,std::string>>;
+    %template(StrStrMap) map<std::string, std::string>;
+}
+
+// Extend FIX::Session with our custom method
+%extend FIX::Session {
+    bool encodeAndSend(const std::vector<pair<std::string,std::string>>& headerFields,
+                          const std::vector<pair<std::string,std::string>>& bodyFields) {
+        return $self->encodeAndSend(headerFields, bodyFields);
+    }
+
+
+    bool encodeFixMessage(const std::map<std::string, std::string>& headerFields,
+                          const std::map<std::string, std::string>& bodyFields) {
+        return $self->encodeFixMessage(headerFields, bodyFields);
+    }
+
+    bool sendRawDict(std::vector<std::pair<int,std::string>> const& headerFields,
+                     std::vector<std::pair<int,std::string>> const& bodyFields,
+                     bool autoSeqNum = true) {
+        return $self->sendRawDict(headerFields, bodyFields, autoSeqNum);
+    }
+}
+
+// --- END CUSTOM PATCH ----------------------------------------------------#include <Log.h>
+%{
 #include <FileLog.h>
 #include <MessageStore.h>
 #include <FileStore.h>
@@ -88,6 +130,8 @@ namespace std
 #include <NullStore.h>
 
 #ifdef HAVE_SSL
+#include <ThreadedSSLSocketInitiator.h>
+#include <ThreadedSSLSocketConnection.h>
 #include <SSLSocketAcceptor.h>
 #include <SSLSocketInitiator.h>
 #include <SSLSocketConnection.h>
@@ -249,7 +293,7 @@ bool tryPythonException(std::function<bool()> const& function)
   {
     raisePythonException<FIX::Exception>(e, SWIGTYPE_p_FIX__Exception); return false;
   }
-  catch(std::exception const& e) 
+  catch(std::exception const& e)
   {
     SWIG_Error(SWIG_RuntimeError, e.what()); return false;
   }
@@ -393,7 +437,7 @@ VALUE tryRubyException(std::function<VALUE()> const& function)
   {
     raiseRubyException<FIX::Exception>(e, SWIGTYPE_p_FIX__Exception); return Qnil;
   }
-  catch(std::exception const& e) 
+  catch(std::exception const& e)
   {
     SWIG_Error(SWIG_RuntimeError, e.what()); return Qnil;
   }
@@ -403,7 +447,7 @@ VALUE tryRubyException(std::function<VALUE()> const& function)
   }
 }
 #endif
-         
+
 typedef FIX::UtcTimeStamp UtcTimeStamp;
 typedef FIX::UtcDate UtcDate;
 typedef FIX::UtcTimeOnly UtcTimeOnly;
@@ -558,6 +602,7 @@ typedef FIX::SessionSettings SessionSettings;
 %include "../C++/SocketMonitor.h"
 %include "../C++/SSLSocketAcceptor.h"
 %include "../C++/SSLSocketInitiator.h"
+%include "../C++/ThreadedSSLSocketInitiator.h"
 %include "../C++/DatabaseConnectionID.h"
 %include "../C++/DatabaseConnectionPool.h"
 %include "../C++/MySQLConnection.h"

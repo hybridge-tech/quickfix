@@ -65,7 +65,27 @@ public:
     m_state.logoutReason(reason);
   }
   bool isEnabled() { return m_state.enabled(); }
+
+// Efficiently send a raw FIX message assembled from ordered tag/value pairs.
+// - headerFields: ordered header fields (excluding BeginString and BodyLength).
+// - bodyFields: ordered body fields.
+// - autoSeqNum: if true, auto-increments and uses session MsgSeqNum.
+bool encodeAndSend(
+    const std::vector<std::pair<std::string, std::string>>& headerFields,
+    const std::vector<std::pair<std::string, std::string>>& bodyFields);
+
+
+bool encodeFixMessage(
+                        const std::map<std::string, std::string>& headerFields,
+                        const std::map<std::string, std::string>& bodyFields
+                    );
+
+bool sendRawDict(const std::vector<std::pair<int, std::string>>& headerFields,
+                 const std::vector<std::pair<int, std::string>>& bodyFields,
+                 bool autoSeqNum = true);
+
   bool sendRaw(const std::string& message);
+// --- END CUSTOM PATCH -------------------------------------------------
   bool sentLogon() { return m_state.sentLogon(); }
   bool sentLogout() { return m_state.sentLogout(); }
   bool receivedLogon() { return m_state.receivedLogon(); }
