@@ -1,4 +1,9 @@
 add_subdirectory(C++)
+# --- Add hffix includes for encodeAndSend ---
+target_include_directories(quickfix
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
 
 if( WIN32 OR ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" )
 
