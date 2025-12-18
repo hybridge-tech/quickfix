@@ -5,6 +5,6 @@
 /* #undef HAVE_STD_SHARED_PTR */
 /* #undef HAVE_MYSQL */
 /* #undef HAVE_POSTGRESQL */
-#define HAVE_SSL 1
+/* #undef HAVE_SSL */
 
 #endif
