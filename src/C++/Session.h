@@ -285,6 +285,7 @@ private:
 
   bool validLogonState(const MsgType &msgType);
   void fromCallback(const MsgType &msgType, const Message &msg, const SessionID &sessionID);
+  bool tryFromAppDict(const std::string &msg, const UtcTimeStamp &now);
 
   void doBadTime(const Message &msg);
   void doBadCompID(const Message &msg);

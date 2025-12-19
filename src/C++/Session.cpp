@@ -1342,6 +1342,41 @@ void Session::fromCallback(const MsgType &msgType, const Message &msg, const Ses
   }
 }
 
+bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
+  // Fast path: parse with hffix for ExecutionReport (35=8) and OrderCancelReject (35=9) messages
+  hffix::message_reader reader(msg.c_str(), msg.size());
+  if (!reader.is_complete() || !reader.is_valid()) {
+    return false;
+  }
+
+  // Check MsgType - first field after header is always MsgType (tag 35)
+  auto it = reader.begin();
+  if (it == reader.end() || it->tag() != 35) {
+    return false;
+  }
+
+  std::string msgType(it->value().begin(), it->value().end());
+  if (msgType != "8" && msgType != "9") {  // Not ExecutionReport or OrderCancelReject
+    return false;
+  }
+
+  // Parse all fields into map
+  std::map<int, std::string> fields;
+  for (auto field = reader.begin(); field != reader.end(); ++field) {
+    fields[field->tag()] = std::string(field->value().begin(), field->value().end());
+  }
+
+  // Update session state
+  m_state.onIncoming(msg);
+  m_state.lastReceivedTime(m_timestamper());
+  m_state.testRequest(0);
+  m_state.incrNextTargetMsgSeqNum();
+
+  // Call the dict callback
+  m_application.fromAppDict(fields, msg, m_sessionID);
+  return true;
+}
+
 void Session::doBadTime(const Message &msg) {
   generateReject(msg, SessionRejectReason_SENDINGTIME_ACCURACY_PROBLEM);
   generateLogout();
@@ -1437,6 +1472,11 @@ bool Session::nextQueued(SEQNUM num, const UtcTimeStamp &now) {
 
 void Session::next(const std::string &msg, const UtcTimeStamp &now, bool queued) {
   try {
+    // Fast path: try hffix parsing for ExecutionReport and OrderCancelReject messages
+    if (!queued && tryFromAppDict(msg, now)) {
+      return;
+    }
+
     m_state.onIncoming(msg);
     const DataDictionary &sessionDD = m_dataDictionaryProvider.getSessionDataDictionary(m_sessionID.getBeginString());
     if (m_sessionID.isFIXT()) {

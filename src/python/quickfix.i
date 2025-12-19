@@ -257,6 +257,28 @@ def start(self):
   }
 }
 
+%feature("director:except") FIX::Application::fromAppDict {
+  if( $error != NULL ) {
+    PyObject *ptype, *pvalue, *ptraceback;
+    PyErr_Fetch( &ptype, &pvalue, &ptraceback );
+    void *result;
+
+    if( SWIG_ConvertPtr(pvalue, &result, SWIGTYPE_p_FIX__FieldNotFound, 0 ) != -1 ) {
+      throw *((FIX::FieldNotFound*)result);
+    } else if( SWIG_ConvertPtr(pvalue, &result, SWIGTYPE_p_FIX__IncorrectDataFormat, 0 ) != -1 ) {
+      throw *((FIX::IncorrectDataFormat*)result);
+    } else if( SWIG_ConvertPtr(pvalue, &result, SWIGTYPE_p_FIX__IncorrectTagValue, 0 ) != -1 ) {
+      throw *((FIX::IncorrectTagValue*)result);
+    } else if( SWIG_ConvertPtr(pvalue, &result, SWIGTYPE_p_FIX__UnsupportedMessageType, 0 ) != -1 ) {
+      throw *((FIX::UnsupportedMessageType*)result);
+    } else {
+      PyErr_Restore( ptype, pvalue, ptraceback );
+      PyErr_Print();
+      Py_Exit(1);
+    }
+  }
+}
+
 %pythoncode %{
 class SocketInitiator(SocketInitiatorBase):
   application = 0

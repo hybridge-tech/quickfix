@@ -25,6 +25,7 @@
 #include "Message.h"
 #include "Mutex.h"
 #include "SessionID.h"
+#include <map>
 
 namespace FIX {
 /**
@@ -60,6 +61,12 @@ public:
   virtual void fromApp(const Message &, const SessionID &)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType)
       = 0;
+  /// Notification of app message being received from target as dict (low-latency path)
+  virtual void fromAppDict(
+      const std::map<int, std::string>& fields,
+      const std::string& rawMessage,
+      const SessionID& sessionID)
+      EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {}
 };
 
 /**
@@ -107,6 +114,11 @@ public:
     Locker l(m_mutex);
     app().fromApp(message, sessionID);
   }
+  void fromAppDict(const std::map<int, std::string>& fields, const std::string& rawMessage, const SessionID& sessionID)
+      EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {
+    Locker l(m_mutex);
+    app().fromAppDict(fields, rawMessage, sessionID);
+  }
 
   Mutex m_mutex;
 
@@ -129,6 +141,8 @@ class NullApplication : public Application {
   void fromAdmin(const Message &, const SessionID &)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon) {}
   void fromApp(const Message &, const SessionID &)
+      EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {}
+  void fromAppDict(const std::map<int, std::string>&, const std::string&, const SessionID&)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {}
 };
 /*! @} */
