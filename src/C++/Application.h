@@ -26,8 +26,24 @@
 #include "Mutex.h"
 #include "SessionID.h"
 #include <map>
+#include <vector>
+#include <chrono>
+#include <cstdint>
 
 namespace FIX {
+
+/**
+ * Raw FIX message container for low-latency message delivery.
+ * No parsing is done - only raw bytes and receive timestamp.
+ */
+struct ParsedFixMessage {
+    /// Raw FIX message bytes
+    std::string msgType;
+    std::string raw;
+
+    /// Timestamp when message received (nanoseconds since epoch)
+    int64_t receive_time_ns;
+};
 /**
  * This interface must be implemented to define what your %FIX application
  * does.
@@ -61,10 +77,9 @@ public:
   virtual void fromApp(const Message &, const SessionID &)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType)
       = 0;
-  /// Notification of app message being received from target as dict (low-latency path)
+  /// Notification of app message being received from target as parsed struct (low-latency path)
   virtual void fromAppDict(
-      const std::map<int, std::string>& fields,
-      const std::string& rawMessage,
+      const ParsedFixMessage& message,
       const SessionID& sessionID)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {}
 };
@@ -114,10 +129,10 @@ public:
     Locker l(m_mutex);
     app().fromApp(message, sessionID);
   }
-  void fromAppDict(const std::map<int, std::string>& fields, const std::string& rawMessage, const SessionID& sessionID)
+  void fromAppDict(const ParsedFixMessage& message, const SessionID& sessionID)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {
     Locker l(m_mutex);
-    app().fromAppDict(fields, rawMessage, sessionID);
+    app().fromAppDict(message, sessionID);
   }
 
   Mutex m_mutex;
@@ -142,7 +157,7 @@ class NullApplication : public Application {
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, RejectLogon) {}
   void fromApp(const Message &, const SessionID &)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {}
-  void fromAppDict(const std::map<int, std::string>&, const std::string&, const SessionID&)
+  void fromAppDict(const ParsedFixMessage&, const SessionID&)
       EXCEPT(FieldNotFound, IncorrectDataFormat, IncorrectTagValue, UnsupportedMessageType) {}
 };
 /*! @} */

@@ -88,7 +88,6 @@ namespace std {
 namespace std {
     %template(StringStringPairVector) vector<pair<std::string,std::string>>;
     %template(StrStrMap) map<std::string, std::string>;
-    %template(IntStringMap) map<int, std::string>;
 }
 
 // Extend FIX::Session with our custom method

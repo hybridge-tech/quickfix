@@ -1343,38 +1343,43 @@ void Session::fromCallback(const MsgType &msgType, const Message &msg, const Ses
 }
 
 bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
-  // Fast path: parse with hffix for ExecutionReport (35=8) and OrderCancelReject (35=9) messages
-  hffix::message_reader reader(msg.c_str(), msg.size());
-  if (!reader.is_complete() || !reader.is_valid()) {
-    return false;
-  }
+    // Capture timestamp immediately
+    const int64_t receive_time_ns =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(
+            std::chrono::high_resolution_clock::now().time_since_epoch()
+        ).count();
 
-  // Check MsgType - first field after header is always MsgType (tag 35)
-  auto it = reader.begin();
-  if (it == reader.end() || it->tag() != 35) {
-    return false;
-  }
+    // Use hffix only to validate and check message type
+    hffix::message_reader reader(msg.data(), msg.data() + msg.size());
 
-  std::string msgType(it->value().begin(), it->value().end());
-  if (msgType != "8" && msgType != "9") {  // Not ExecutionReport or OrderCancelReject
-    return false;
-  }
+    if (!reader.is_complete() || !reader.is_valid()) {
+        return false;
+    }
 
-  // Parse all fields into map
-  std::map<int, std::string> fields;
-  for (auto field = reader.begin(); field != reader.end(); ++field) {
-    fields[field->tag()] = std::string(field->value().begin(), field->value().end());
-  }
+    // Check MsgType - only handle 8 (ExecutionReport), 9 (OrderCancelReject), j (BusinessMessageReject)
+    auto mt = reader.message_type();
+    auto msgType = mt->value().as_string_view();
 
-  // Update session state
-  m_state.onIncoming(msg);
-  m_state.lastReceivedTime(m_timestamper());
-  m_state.testRequest(0);
-  m_state.incrNextTargetMsgSeqNum();
+    if (msgType != "8" && msgType != "9" && msgType != "j") {
+        return false;
+    }
 
-  // Call the dict callback
-  m_application.fromAppDict(fields, msg, m_sessionID);
-  return true;
+    // Build ParsedFixMessage with raw bytes only (no parsing)
+    ParsedFixMessage parsed;
+    parsed.msgType = msgType;
+    parsed.raw = std::string(reader.message_begin(), reader.message_end());
+    parsed.receive_time_ns = receive_time_ns;
+
+    // Update session state
+    m_state.onIncoming(msg);
+    m_state.lastReceivedTime(m_timestamper());
+    m_state.testRequest(0);
+    m_state.incrNextTargetMsgSeqNum();
+
+    // Deliver raw message to application
+    m_application.fromAppDict(parsed, m_sessionID);
+
+    return true;
 }
 
 void Session::doBadTime(const Message &msg) {
@@ -1472,7 +1477,7 @@ bool Session::nextQueued(SEQNUM num, const UtcTimeStamp &now) {
 
 void Session::next(const std::string &msg, const UtcTimeStamp &now, bool queued) {
   try {
-    // Fast path: try hffix parsing for ExecutionReport and OrderCancelReject messages
+    // Fast path: try hffix parsing for supported app messages (8, 9, j, W, X)
     if (!queued && tryFromAppDict(msg, now)) {
       return;
     }
