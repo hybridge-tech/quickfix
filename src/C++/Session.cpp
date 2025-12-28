@@ -1343,18 +1343,16 @@ void Session::fromCallback(const MsgType &msgType, const Message &msg, const Ses
 }
 
 bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
-    // Capture timestamp immediately
+    // Use the passed-in timestamp (nanoseconds since epoch)
     const int64_t receive_time_ns =
-        std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now().time_since_epoch()
-        ).count();
+        static_cast<int64_t>(now.getTimeT()) * 1000000000LL + now.getNanosecond();
 
     // Use hffix only to validate and check message type
     hffix::message_reader reader(msg.data(), msg.data() + msg.size());
 
-    if (!reader.is_complete() || !reader.is_valid()) {
-        return false;
-    }
+//    if (!reader.is_complete() || !reader.is_valid()) {
+//        return false;
+//    }
 
     // Check MsgType - only handle 8 (ExecutionReport), 9 (OrderCancelReject), j (BusinessMessageReject)
     auto mt = reader.message_type();
