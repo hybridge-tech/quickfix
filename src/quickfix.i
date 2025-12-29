@@ -70,6 +70,7 @@ namespace std
 #include <Dictionary.h>
 #include <SessionSettings.h>
 #include <Session.h>
+#include <MessageQueue.h>
 %}
 // --- BEGIN CUSTOM PATCH: sendRawDict exposure ----------------------------
 
@@ -614,3 +615,41 @@ typedef FIX::SessionSettings SessionSettings;
 %include "../C++/ThreadedSocketAcceptor.h"
 %include "../C++/ThreadedSocketInitiator.h"
 %include "../C++/NullStore.h"
+
+// --- BEGIN MessageQueue: Message queue for fast message retrieval ---
+%{
+#include <MessageQueue.h>
+%}
+
+// Expose QueuedMessage struct to SWIG
+namespace FIX {
+namespace MessageQueue {
+    struct QueuedMessage {
+        std::string msgType;
+        std::string raw;
+        int64_t receive_time_ns;
+    };
+}
+}
+
+// Extend Session with queue methods - SWIG handles conversions
+%extend FIX::Session {
+    // Returns QueuedMessage with empty msgType if queue is empty
+    FIX::MessageQueue::QueuedMessage getNextMessage() {
+        auto msg = FIX::MessageQueue::instance().pop();
+        if (!msg) {
+            return FIX::MessageQueue::QueuedMessage{"", "", 0};
+        }
+        return *msg;
+    }
+
+    // Returns QueuedMessage with empty msgType if timeout
+    FIX::MessageQueue::QueuedMessage waitForMessage(int timeout_ms = 1000) {
+        auto msg = FIX::MessageQueue::instance().waitAndPop(timeout_ms);
+        if (!msg) {
+            return FIX::MessageQueue::QueuedMessage{"", "", 0};
+        }
+        return *msg;
+    }
+}
+// --- END MessageQueue ---

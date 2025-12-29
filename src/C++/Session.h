@@ -85,6 +85,10 @@ bool sendRawDict(const std::vector<std::pair<int, std::string>>& headerFields,
                  bool autoSeqNum = true);
 
   bool sendRaw(const std::string& message);
+
+  // Message queue methods for low-latency message retrieval
+  bool hasQueuedMessages();
+  size_t queuedMessageCount();
 // --- END CUSTOM PATCH -------------------------------------------------
   bool sentLogon() { return m_state.sentLogon(); }
   bool sentLogout() { return m_state.sentLogout(); }

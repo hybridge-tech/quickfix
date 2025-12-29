@@ -26,6 +26,7 @@
 #include <hffix/hffix_fields.hpp>
 
 #include "Session.h"
+#include "MessageQueue.h"
 #include "Values.h"
 #include <algorithm>
 #include <iostream>
@@ -875,6 +876,14 @@ bool Session::sendRaw(const std::string &string) {
 
   return m_pResponder->send(string);
 }
+
+bool Session::hasQueuedMessages() {
+  return MessageQueue::instance().hasMessages();
+}
+
+size_t Session::queuedMessageCount() {
+  return MessageQueue::instance().size();
+}
 // --- END CUSTOM PATCH -------------------------------------------------
 
 bool Session::send(const std::string &string) {
@@ -1362,20 +1371,17 @@ bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
         return false;
     }
 
-    // Build ParsedFixMessage with raw bytes only (no parsing)
-    ParsedFixMessage parsed;
-    parsed.msgType = msgType;
-    parsed.raw = std::string(reader.message_begin(), reader.message_end());
-    parsed.receive_time_ns = receive_time_ns;
-
     // Update session state
     m_state.onIncoming(msg);
     m_state.lastReceivedTime(m_timestamper());
     m_state.testRequest(0);
     m_state.incrNextTargetMsgSeqNum();
 
-    // Deliver raw message to application
-    m_application.fromAppDict(parsed, m_sessionID);
+    // Push to queue - bypasses SWIG callback overhead
+    //std::cerr << "[tryFromAppDict] Pushing msgType=" << msgType << " to queue" << std::endl;
+    std::string rawMsg(reader.message_begin(), reader.message_end());
+    MessageQueue::instance().push(std::string(msgType), rawMsg, receive_time_ns);
+    //std::cerr << "[tryFromAppDict] Push complete, queue size=" << MessageQueue::instance().size() << std::endl;
 
     return true;
 }
