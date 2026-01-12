@@ -1363,11 +1363,17 @@ bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
 //        return false;
 //    }
 
-    // Check MsgType - only handle 8 (ExecutionReport), 9 (OrderCancelReject), j (BusinessMessageReject)
+    // Check MsgType - handle order flow and market data messages
+    // Order flow: 8 (ExecutionReport), 9 (OrderCancelReject), j (BusinessMessageReject)
+    // Market data: X (MarketDataIncrementalRefresh), W (MarketDataSnapshotFullRefresh),
+    //              y (SecurityListRequest), h (TradingSessionStatus), f (SecurityStatus)
     auto mt = reader.message_type();
     auto msgType = mt->value().as_string_view();
 
-    if (msgType != "8" && msgType != "9" && msgType != "j") {
+    if (msgType != "8" && msgType != "9" && msgType != "j" && msgType != "y"
+        //msgType != "X" && msgType != "W"
+        && msgType != "h" && msgType != "f"
+        ) {
         return false;
     }
 

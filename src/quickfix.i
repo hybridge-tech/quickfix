@@ -621,7 +621,7 @@ typedef FIX::SessionSettings SessionSettings;
 #include <MessageQueue.h>
 %}
 
-// Expose QueuedMessage struct to SWIG
+// Expose QueuedMessage struct
 namespace FIX {
 namespace MessageQueue {
     struct QueuedMessage {
