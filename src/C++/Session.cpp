@@ -1371,7 +1371,7 @@ bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
     auto msgType = mt->value().as_string_view();
 
     if (msgType != "8" && msgType != "9" && msgType != "j" && msgType != "y"
-        //msgType != "X" && msgType != "W"
+        && msgType != "X" && msgType != "W"
         && msgType != "h" && msgType != "f"
         ) {
         return false;
