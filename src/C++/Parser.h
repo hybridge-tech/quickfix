@@ -34,7 +34,7 @@ namespace FIX {
 /// Parses %FIX messages off an input stream.
 class Parser {
 public:
-  Parser() {}
+  Parser() : m_readPos(0) {}
   ~Parser() {}
 
   bool extractLength(int &length, std::string::size_type &pos, const std::string &buffer) EXCEPT(MessageParseError);
@@ -44,7 +44,17 @@ public:
   void addToStream(const std::string &str) { m_buffer.append(str); }
 
 private:
+  // Compact buffer when read position exceeds threshold to prevent unbounded growth
+  void compactBufferIfNeeded() {
+    static const size_t COMPACT_THRESHOLD = 4096;
+    if (m_readPos > COMPACT_THRESHOLD) {
+      m_buffer.erase(0, m_readPos);
+      m_readPos = 0;
+    }
+  }
+
   std::string m_buffer;
+  std::string::size_type m_readPos;
 };
 } // namespace FIX
 #endif // FIX_PARSER_H

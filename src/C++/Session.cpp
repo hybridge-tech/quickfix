@@ -618,10 +618,7 @@ bool FIX::Session::encodeAndSend(
     const std::vector<std::pair<std::string, std::string>>& bodyFields)
 {
     try {
-        char buffer[4096];
-        hffix::message_writer writer(buffer, buffer + sizeof(buffer));
-
-        // Determine BeginString
+        // Determine BeginString before locking (read-only scan)
         std::string beginStr = "FIX.4.4"; // default
         for (const auto& [tag, val] : headerFields) {
             if (tag == "8") {
@@ -630,19 +627,21 @@ bool FIX::Session::encodeAndSend(
             }
         }
 
+        // Lock from seq num acquisition through send to ensure ordering
+        Locker l(m_mutex);
+
+        char buffer[4096];
+        hffix::message_writer writer(buffer, buffer + sizeof(buffer));
+
         // Start message with header
         writer.push_back_header(beginStr.c_str());
-        // --- Insert MsgSeqNum automatically
-        Locker l(m_mutex);
-//        auto next = m_state.getNextSenderMsgSeqNum();
-//        writer.push_back_int(34, next);
-//        m_state.incrNextSenderMsgSeqNum();
+
         // Write all header fields (skipping tag 8, since push_back_header already did it)
         for (const auto& [tagStr, val] : headerFields) {
             if (tagStr == "34") {
-                auto next = m_state.getNextSenderMsgSeqNum();
-                writer.push_back_int(34, next);
+                int next = m_state.getNextSenderMsgSeqNum();
                 m_state.incrNextSenderMsgSeqNum();
+                writer.push_back_int(34, next);
                 continue;
             }
 
@@ -664,16 +663,8 @@ bool FIX::Session::encodeAndSend(
         // Get message string
         std::string raw(buffer, writer.message_end() - buffer);
 
-        // Replace any pipe with SOH if necessary
-//        for (auto& c : raw)
-//            if (c == '|') c = '\x01';
         m_state.onOutgoing(raw);
-        bool sentok = m_pResponder->send(raw);
-
-        // Send through QuickFIX session
-//        this->sendRaw(raw);
-
-        return sentok;
+        return m_pResponder->send(raw);
     }
     catch (const std::exception& e) {
         std::cerr << "[encodeAndSend] Error: " << e.what() << std::endl;
