@@ -74,6 +74,7 @@ compile_commands.json
 *.vcxproj
 *.vcxproj.filters
 *.sln
+*.swp
 
 # SWIG-generated Python bindings
 src/python/QuickfixPython.cpp
