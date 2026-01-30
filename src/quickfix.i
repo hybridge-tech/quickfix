@@ -93,8 +93,8 @@ namespace std {
 
 // Extend FIX::Session with our custom method
 %extend FIX::Session {
-    bool encodeAndSend(const std::vector<pair<std::string,std::string>>& headerFields,
-                          const std::vector<pair<std::string,std::string>>& bodyFields) {
+    bool encodeAndSend(const std::vector<pair<int,std::string>>& headerFields,
+                          const std::vector<pair<int,std::string>>& bodyFields) {
         return $self->encodeAndSend(headerFields, bodyFields);
     }
 

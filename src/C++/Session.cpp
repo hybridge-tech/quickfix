@@ -614,14 +614,14 @@ bool Session::sendRaw(Message &message, SEQNUM num) {
 #include <string>
 #include <iostream>
 bool FIX::Session::encodeAndSend(
-    const std::vector<std::pair<std::string, std::string>>& headerFields,
-    const std::vector<std::pair<std::string, std::string>>& bodyFields)
+    const std::vector<std::pair<int, std::string>>& headerFields,
+    const std::vector<std::pair<int, std::string>>& bodyFields)
 {
     try {
         // Determine BeginString before locking (read-only scan)
         std::string beginStr = "FIX.4.4"; // default
         for (const auto& [tag, val] : headerFields) {
-            if (tag == "8") {
+            if (tag == 8) {
                 beginStr = val;
                 break;
             }
@@ -637,22 +637,20 @@ bool FIX::Session::encodeAndSend(
         writer.push_back_header(beginStr.c_str());
 
         // Write all header fields (skipping tag 8, since push_back_header already did it)
-        for (const auto& [tagStr, val] : headerFields) {
-            if (tagStr == "34") {
+        for (const auto& [tag, val] : headerFields) {
+            if (tag == 34) {
                 int next = m_state.getNextSenderMsgSeqNum();
                 m_state.incrNextSenderMsgSeqNum();
                 writer.push_back_int(34, next);
                 continue;
             }
 
-            int tag = std::stoi(tagStr);
             if (tag != 8 && tag != 9 && tag != 10)
                 writer.push_back_string(tag, val.c_str());
         }
 
         // Write body fields in provided order
-        for (const auto& [tagStr, val] : bodyFields) {
-            int tag = std::stoi(tagStr);
+        for (const auto& [tag, val] : bodyFields) {
             if (tag != 9 && tag != 10)
                 writer.push_back_string(tag, val.c_str());
         }

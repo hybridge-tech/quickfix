@@ -71,8 +71,8 @@ public:
 // - bodyFields: ordered body fields.
 // - autoSeqNum: if true, auto-increments and uses session MsgSeqNum.
 bool encodeAndSend(
-    const std::vector<std::pair<std::string, std::string>>& headerFields,
-    const std::vector<std::pair<std::string, std::string>>& bodyFields);
+    const std::vector<std::pair<int, std::string>>& headerFields,
+    const std::vector<std::pair<int, std::string>>& bodyFields);
 
 
 bool encodeFixMessage(
