@@ -70,6 +70,7 @@ namespace std
 #include <Dictionary.h>
 #include <SessionSettings.h>
 #include <Session.h>
+#include <SendQueue.h>
 #include <MessageQueue.h>
 %}
 // --- BEGIN CUSTOM PATCH: sendRawDict exposure ----------------------------
@@ -108,6 +109,24 @@ namespace std {
                      std::vector<std::pair<int,std::string>> const& bodyFields,
                      bool autoSeqNum = true) {
         return $self->sendRawDict(headerFields, bodyFields, autoSeqNum);
+    }
+
+    void startSendQueue(int log_fd, int throttle_limit = 0, int spin_iterations = 1000) {
+        $self->startSendQueue(log_fd, throttle_limit, spin_iterations);
+    }
+    void stopSendQueue() {
+        $self->stopSendQueue();
+    }
+    void queueOrder(std::vector<std::pair<int,std::string>> header,
+                    std::vector<std::pair<int,std::string>> body,
+                    int priority,
+                    const std::string& owner,
+                    const std::string& kind) {
+        $self->queueOrder(std::move(header), std::move(body), priority,
+                          std::string(owner), std::string(kind));
+    }
+    size_t sendQueueSize() {
+        return $self->sendQueueSize();
     }
 }
 
@@ -621,35 +640,38 @@ typedef FIX::SessionSettings SessionSettings;
 #include <MessageQueue.h>
 %}
 
-// Expose QueuedMessage struct
-namespace FIX {
-namespace MessageQueue {
-    struct QueuedMessage {
-        std::string msgType;
-        std::string raw;
-        int64_t receive_time_ns;
-    };
-}
-}
-
-// Extend Session with queue methods - SWIG handles conversions
+// Return (msgType, raw_bytes, receive_time_ns) tuple — one C→Python crossing
+%feature("nothread") FIX::Session::waitForMessage;
+%feature("nothread") FIX::Session::getNextMessage;
 %extend FIX::Session {
-    // Returns QueuedMessage with empty msgType if queue is empty
-    FIX::MessageQueue::QueuedMessage getNextMessage() {
+    PyObject* getNextMessage() {
         auto msg = FIX::MessageQueue::instance().pop();
-        if (!msg) {
-            return FIX::MessageQueue::QueuedMessage{"", "", 0};
+        PyObject* t = PyTuple_New(3);
+        if (msg) {
+            PyTuple_SET_ITEM(t, 0, PyUnicode_FromStringAndSize(msg->msgType.data(), msg->msgType.size()));
+            PyTuple_SET_ITEM(t, 1, PyBytes_FromStringAndSize(msg->raw.data(), msg->raw.size()));
+            PyTuple_SET_ITEM(t, 2, PyLong_FromLongLong(msg->receive_time_ns));
+        } else {
+            PyTuple_SET_ITEM(t, 0, PyUnicode_FromString(""));
+            PyTuple_SET_ITEM(t, 1, PyBytes_FromString(""));
+            PyTuple_SET_ITEM(t, 2, PyLong_FromLongLong(0));
         }
-        return *msg;
+        return t;
     }
 
-    // Returns QueuedMessage with empty msgType if timeout
-    FIX::MessageQueue::QueuedMessage waitForMessage(int timeout_ms = 1000) {
+    PyObject* waitForMessage(int timeout_ms = 1000) {
         auto msg = FIX::MessageQueue::instance().waitAndPop(timeout_ms);
-        if (!msg) {
-            return FIX::MessageQueue::QueuedMessage{"", "", 0};
+        PyObject* t = PyTuple_New(3);
+        if (msg) {
+            PyTuple_SET_ITEM(t, 0, PyUnicode_FromStringAndSize(msg->msgType.data(), msg->msgType.size()));
+            PyTuple_SET_ITEM(t, 1, PyBytes_FromStringAndSize(msg->raw.data(), msg->raw.size()));
+            PyTuple_SET_ITEM(t, 2, PyLong_FromLongLong(msg->receive_time_ns));
+        } else {
+            PyTuple_SET_ITEM(t, 0, PyUnicode_FromString(""));
+            PyTuple_SET_ITEM(t, 1, PyBytes_FromString(""));
+            PyTuple_SET_ITEM(t, 2, PyLong_FromLongLong(0));
         }
-        return *msg;
+        return t;
     }
 }
 // --- END MessageQueue ---

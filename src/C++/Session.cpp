@@ -618,25 +618,16 @@ bool FIX::Session::encodeAndSend(
     const std::vector<std::pair<int, std::string>>& bodyFields)
 {
     try {
-        // Determine BeginString before locking (read-only scan)
-        std::string beginStr = "FIX.4.4"; // default
-        for (const auto& [tag, val] : headerFields) {
-            if (tag == 8) {
-                beginStr = val;
-                break;
-            }
-        }
-
         // Lock from seq num acquisition through send to ensure ordering
         Locker l(m_mutex);
 
         char buffer[4096];
         hffix::message_writer writer(buffer, buffer + sizeof(buffer));
 
-        // Start message with header
-        writer.push_back_header(beginStr.c_str());
+        // BeginString from session — no need to pass in header tuple
+        writer.push_back_header(m_sessionID.getBeginString().getString().c_str());
 
-        // Write all header fields (skipping tag 8, since push_back_header already did it)
+        // Header fields — handle 34 (seqnum) and 52 (SendingTime)
         for (const auto& [tag, val] : headerFields) {
             if (tag == 34) {
                 int next = m_state.getNextSenderMsgSeqNum();
@@ -644,25 +635,38 @@ bool FIX::Session::encodeAndSend(
                 writer.push_back_int(34, next);
                 continue;
             }
-
-            if (tag != 8 && tag != 9 && tag != 10)
-                writer.push_back_string(tag, val.c_str());
+            if (tag == 52) {
+                // Fresh SendingTime — most accurate, right at encoding
+                auto now = std::chrono::system_clock::now();
+                auto tt = std::chrono::system_clock::to_time_t(now);
+                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    now.time_since_epoch()) % 1000;
+                struct tm utc;
+                gmtime_r(&tt, &utc);
+                char ts[128];
+                snprintf(ts, sizeof(ts), "%04d%02d%02d-%02d:%02d:%02d.%03d",
+                         utc.tm_year+1900, utc.tm_mon+1, utc.tm_mday,
+                         utc.tm_hour, utc.tm_min, utc.tm_sec, static_cast<int>(ms.count()));
+                writer.push_back_string(52, ts);
+                continue;
+            }
+            writer.push_back_string(tag, val);  // std::string overload — no memchr
         }
 
-        // Write body fields in provided order
+        // Body fields — no tag guards needed, our builders don't include 9/10
         for (const auto& [tag, val] : bodyFields) {
-            if (tag != 9 && tag != 10)
-                writer.push_back_string(tag, val.c_str());
+            writer.push_back_string(tag, val);  // std::string overload — no memchr
         }
 
         // Finalize message (computes BodyLength + CheckSum)
         writer.push_back_trailer();
 
-        // Get message string
-        std::string raw(buffer, writer.message_end() - buffer);
+        // Reuse member string to avoid heap alloc per message
+        size_t len = writer.message_end() - buffer;
+        m_rawBuffer.assign(buffer, len);
 
-        m_state.onOutgoing(raw);
-        return m_pResponder->send(raw);
+        m_state.onOutgoing(m_rawBuffer);
+        return m_pResponder->send(m_rawBuffer);
     }
     catch (const std::exception& e) {
         std::cerr << "[encodeAndSend] Error: " << e.what() << std::endl;

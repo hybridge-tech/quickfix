@@ -36,6 +36,7 @@ set(quickfix_SOURCES
   PostgreSQLStore.cpp
   pugixml.cpp
   PUGIXML_DOMDocument.cpp
+  SendQueue.cpp
   Session.cpp
   SessionFactory.cpp
   SessionSettings.cpp

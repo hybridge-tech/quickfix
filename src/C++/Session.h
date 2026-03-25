@@ -32,6 +32,7 @@
 #include "Log.h"
 #include "Mutex.h"
 #include "Responder.h"
+#include "SendQueue.h"
 #include "SessionID.h"
 #include "SessionState.h"
 #include "TimeRange.h"
@@ -247,6 +248,21 @@ bool sendRawDict(const std::vector<std::pair<int, std::string>>& headerFields,
   Log *getLog() { return &m_state; }
   const MessageStore *getStore() { return &m_state; }
 
+  // SendQueue: C++ outgoing order queue (replaces Python router thread)
+  void startSendQueue(int log_fd, int throttle_limit = 0, int spin_iterations = 1000) {
+      m_sendQueue.start(this, log_fd, throttle_limit, spin_iterations);
+  }
+  void stopSendQueue() { m_sendQueue.stop(); }
+  void queueOrder(std::vector<std::pair<int, std::string>> header,
+                  std::vector<std::pair<int, std::string>> body,
+                  int priority,
+                  std::string owner,
+                  std::string kind) {
+      m_sendQueue.push(std::move(header), std::move(body), priority,
+                       std::move(owner), std::move(kind));
+  }
+  size_t sendQueueSize() const { return m_sendQueue.size(); }
+
 private:
   typedef std::map<SessionID, Session *> Sessions;
   typedef std::set<SessionID> SessionIDs;
@@ -355,6 +371,8 @@ private:
   MessageStoreFactory &m_messageStoreFactory;
   LogFactory *m_pLogFactory;
   Responder *m_pResponder;
+  SendQueue m_sendQueue;
+  std::string m_rawBuffer;  // reused by encodeAndSend to avoid heap alloc per message
   Mutex m_mutex;
 
   static Sessions s_sessions;
