@@ -613,6 +613,12 @@ typedef FIX::SessionSettings SessionSettings;
 %include "../C++/FileLog.h"
 %include "../C++/MessageStore.h"
 %include "../C++/FileStore.h"
+// ParsedFixMessage::raw contains latin-1 (or arbitrary binary) FIX data.
+// Override SWIG's default std::string→PyUnicode (UTF-8) conversion so it
+// returns Python bytes, preserving the original byte values.
+%typemap(out) std::string FIX::ParsedFixMessage::raw {
+  $result = PyBytes_FromStringAndSize($1.data(), $1.size());
+}
 %include "../C++/Application.h"
 %include "../C++/Initiator.h"
 %include "../C++/SocketInitiator.h"
