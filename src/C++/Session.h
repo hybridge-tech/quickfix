@@ -373,6 +373,10 @@ private:
   Responder *m_pResponder;
   SendQueue m_sendQueue;
   std::string m_rawBuffer;  // reused by encodeAndSend to avoid heap alloc per message
+  std::string m_cachedBeginString;  // cached for encodeAndSend
+  // Cached tag 52 timestamp — reuse gmtime_r result within the same second
+  time_t m_cachedTimeSec = 0;
+  char m_cachedTimeBuf[72];  // "YYYYMMDD-HH:MM:SS." — oversized to silence -Wformat-truncation
   Mutex m_mutex;
 
   static Sessions s_sessions;

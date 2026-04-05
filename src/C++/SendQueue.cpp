@@ -96,7 +96,8 @@ void SendQueue::senderLoop() {
         m_size.fetch_sub(1, std::memory_order_relaxed);
 
         // Throttle (only when configured, zero overhead otherwise)
-        if (m_throttle_limit > 0) {
+        // HI priority messages bypass throttle entirely
+        if (m_throttle_limit > 0 && order.priority != 0) {
             auto now = std::chrono::steady_clock::now();
             auto cutoff = now - std::chrono::seconds(1);
             while (!m_send_times.empty() && m_send_times.front() < cutoff)
@@ -132,13 +133,18 @@ void SendQueue::senderLoop() {
         }
 
         // encodeAndSend handles tag 52 (SendingTime) injection internally
+        auto before_send = std::chrono::steady_clock::now();
         m_session->encodeAndSend(order.header, order.body);
 
         // Log latency — POSIX write() is atomic for < PIPE_BUF, no buffering
         if (m_logFd >= 0) {
             auto sent_time = std::chrono::steady_clock::now();
-            auto latency_us = std::chrono::duration_cast<std::chrono::microseconds>(
+            auto total_us = std::chrono::duration_cast<std::chrono::microseconds>(
                 sent_time - order.enqueue_time).count();
+            auto send_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                sent_time - before_send).count();
+            auto wait_us = std::chrono::duration_cast<std::chrono::microseconds>(
+                before_send - order.enqueue_time).count();
 
             auto wall = std::chrono::system_clock::now();
             auto tt = std::chrono::system_clock::to_time_t(wall);
@@ -148,19 +154,19 @@ void SendQueue::senderLoop() {
             localtime_r(&tt, &local);
 
             auto qsz = m_size.load(std::memory_order_relaxed);
-            double latency_s = latency_us / 1000000.0;
 
             char buf[512];
             int n = snprintf(buf, sizeof(buf),
                 "%04d-%02d-%02d %02d:%02d:%02d,%03d WARNING (SendQueue) SendQueue.cpp:%-3d -> "
-                "%s sent %s [%s] size %zu %.5fs\n",
+                "%s sent %s [%s] size %zu %.5fs wait=%.5fs send=%.5fs\n",
                 local.tm_year+1900, local.tm_mon+1, local.tm_mday,
                 local.tm_hour, local.tm_min, local.tm_sec,
                 static_cast<int>(ms.count()),
                 __LINE__,
                 order.owner.c_str(), order.kind.c_str(),
                 (order.priority == 0) ? "HI" : "LO",
-                qsz, latency_s);
+                qsz, total_us / 1000000.0,
+                wait_us / 1000000.0, send_us / 1000000.0);
             if (n > 0) { auto w = ::write(m_logFd, buf, n); (void)w; }
         }
     }

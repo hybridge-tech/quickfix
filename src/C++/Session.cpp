@@ -624,8 +624,10 @@ bool FIX::Session::encodeAndSend(
         char buffer[4096];
         hffix::message_writer writer(buffer, buffer + sizeof(buffer));
 
-        // BeginString from session — no need to pass in header tuple
-        writer.push_back_header(m_sessionID.getBeginString().getString().c_str());
+        // Cached BeginString — avoid getString() copy per message
+        if (__builtin_expect(m_cachedBeginString.empty(), 0))
+            m_cachedBeginString = m_sessionID.getBeginString().getString();
+        writer.push_back_header(m_cachedBeginString.c_str());
 
         // Header fields — handle 34 (seqnum) and 52 (SendingTime)
         for (const auto& [tag, val] : headerFields) {
@@ -636,17 +638,23 @@ bool FIX::Session::encodeAndSend(
                 continue;
             }
             if (tag == 52) {
-                // Fresh SendingTime — most accurate, right at encoding
+                // Cached second-level timestamp — only gmtime_r when second changes
                 auto now = std::chrono::system_clock::now();
                 auto tt = std::chrono::system_clock::to_time_t(now);
                 auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                     now.time_since_epoch()) % 1000;
-                struct tm utc;
-                gmtime_r(&tt, &utc);
-                char ts[128];
-                snprintf(ts, sizeof(ts), "%04d%02d%02d-%02d:%02d:%02d.%03d",
-                         utc.tm_year+1900, utc.tm_mon+1, utc.tm_mday,
-                         utc.tm_hour, utc.tm_min, utc.tm_sec, static_cast<int>(ms.count()));
+                if (__builtin_expect(tt != m_cachedTimeSec, 0)) {
+                    m_cachedTimeSec = tt;
+                    struct tm utc;
+                    gmtime_r(&tt, &utc);
+                    snprintf(m_cachedTimeBuf, sizeof(m_cachedTimeBuf),
+                             "%04d%02d%02d-%02d:%02d:%02d.",
+                             utc.tm_year+1900, utc.tm_mon+1, utc.tm_mday,
+                             utc.tm_hour, utc.tm_min, utc.tm_sec);
+                }
+                char ts[32];
+                memcpy(ts, m_cachedTimeBuf, 18);
+                snprintf(ts + 18, 6, "%03d", static_cast<int>(ms.count()));
                 writer.push_back_string(52, ts);
                 continue;
             }
