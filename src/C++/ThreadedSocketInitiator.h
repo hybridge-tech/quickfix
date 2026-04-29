@@ -69,6 +69,7 @@ private:
   bool m_noDelay;
   int m_sendBufSize;
   int m_rcvBufSize;
+  int m_userTimeout;
   SocketToThread m_threads;
   Mutex m_mutex;
 };

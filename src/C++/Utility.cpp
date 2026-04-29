@@ -337,7 +337,20 @@ int socket_setsockopt(socket_handle s, int opt) {
 
 int socket_setsockopt(socket_handle s, int opt, int optval) {
   int level = SOL_SOCKET;
-  if (opt == TCP_NODELAY) {
+  if (opt == TCP_NODELAY
+#ifdef TCP_USER_TIMEOUT
+      || opt == TCP_USER_TIMEOUT
+#endif
+#ifdef TCP_KEEPIDLE
+      || opt == TCP_KEEPIDLE
+#endif
+#ifdef TCP_KEEPINTVL
+      || opt == TCP_KEEPINTVL
+#endif
+#ifdef TCP_KEEPCNT
+      || opt == TCP_KEEPCNT
+#endif
+  ) {
     level = IPPROTO_TCP;
   }
 
@@ -350,7 +363,20 @@ int socket_setsockopt(socket_handle s, int opt, int optval) {
 
 int socket_getsockopt(socket_handle s, int opt, int &optval) {
   int level = SOL_SOCKET;
-  if (opt == TCP_NODELAY) {
+  if (opt == TCP_NODELAY
+#ifdef TCP_USER_TIMEOUT
+      || opt == TCP_USER_TIMEOUT
+#endif
+#ifdef TCP_KEEPIDLE
+      || opt == TCP_KEEPIDLE
+#endif
+#ifdef TCP_KEEPINTVL
+      || opt == TCP_KEEPINTVL
+#endif
+#ifdef TCP_KEEPCNT
+      || opt == TCP_KEEPCNT
+#endif
+  ) {
     level = IPPROTO_TCP;
   }
 

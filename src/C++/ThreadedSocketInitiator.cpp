@@ -37,7 +37,8 @@ ThreadedSocketInitiator::ThreadedSocketInitiator(
       m_reconnectInterval(30),
       m_noDelay(false),
       m_sendBufSize(0),
-      m_rcvBufSize(0) {
+      m_rcvBufSize(0),
+      m_userTimeout(0) {
   socket_init();
 }
 
@@ -51,7 +52,8 @@ ThreadedSocketInitiator::ThreadedSocketInitiator(
       m_reconnectInterval(30),
       m_noDelay(false),
       m_sendBufSize(0),
-      m_rcvBufSize(0) {
+      m_rcvBufSize(0),
+      m_userTimeout(0) {
   socket_init();
 }
 
@@ -72,6 +74,9 @@ void ThreadedSocketInitiator::onConfigure(const SessionSettings &s) EXCEPT(Confi
   }
   if (dict.has(SOCKET_RECEIVE_BUFFER_SIZE)) {
     m_rcvBufSize = dict.getInt(SOCKET_RECEIVE_BUFFER_SIZE);
+  }
+  if (dict.has(SOCKET_USER_TIMEOUT)) {
+    m_userTimeout = dict.getInt(SOCKET_USER_TIMEOUT);
   }
 }
 
@@ -150,6 +155,11 @@ void ThreadedSocketInitiator::doConnect(const SessionID &s, const Dictionary &d)
     if (m_rcvBufSize) {
       socket_setsockopt(socket, SO_RCVBUF, m_rcvBufSize);
     }
+#ifdef TCP_USER_TIMEOUT
+    if (m_userTimeout) {
+      socket_setsockopt(socket, TCP_USER_TIMEOUT, m_userTimeout);
+    }
+#endif
 
     setPending(s);
     log->onEvent(
