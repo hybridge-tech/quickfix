@@ -69,6 +69,7 @@ const char SOCKET_CONNECT_SOURCE_PORT[] = "SocketConnectSourcePort";
 const char SOCKET_NODELAY[] = "SocketNodelay";
 const char SOCKET_SEND_BUFFER_SIZE[] = "SocketSendBufferSize";
 const char SOCKET_RECEIVE_BUFFER_SIZE[] = "SocketReceiveBufferSize";
+const char SOCKET_USER_TIMEOUT[] = "SocketUserTimeout";
 const char HOST_SELECTION_POLICY[] = "HostSelectionPolicy";
 const char HOST_SELECTION_POLICY_PRIORITY_START_OVER_INTERVAL[] = "HostSelectionPolicyPriorityStartOverInterval";
 const char RECONNECT_INTERVAL[] = "ReconnectInterval";
