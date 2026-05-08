@@ -1357,41 +1357,47 @@ bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
     const int64_t receive_time_ns =
         static_cast<int64_t>(now.getTimeT()) * 1000000000LL + now.getNanosecond();
 
-    // Use hffix only to validate and check message type
-    hffix::message_reader reader(msg.data(), msg.data() + msg.size());
+    try {
+        // Use hffix only to validate and check message type
+        hffix::message_reader reader(msg.data(), msg.data() + msg.size());
 
-//    if (!reader.is_complete() || !reader.is_valid()) {
-//        return false;
-//    }
+        // Fall through to the slow path for malformed messages so that
+        // Message(msg, ...) can raise the canonical InvalidMessage exception.
+        if (!reader.is_complete() || !reader.is_valid()) {
+            return false;
+        }
 
-    // Check MsgType - handle order flow and market data messages
-    // Order flow: 8 (ExecutionReport), 9 (OrderCancelReject), j (BusinessMessageReject)
-    // Market data: X (MarketDataIncrementalRefresh), W (MarketDataSnapshotFullRefresh),
-    //              y (SecurityListRequest), h (TradingSessionStatus), f (SecurityStatus)
-    auto mt = reader.message_type();
-    auto msgType = mt->value().as_string_view();
+        // Check MsgType - handle order flow and market data messages
+        // Order flow: 8 (ExecutionReport), 9 (OrderCancelReject), j (BusinessMessageReject)
+        // Market data: X (MarketDataIncrementalRefresh), W (MarketDataSnapshotFullRefresh),
+        //              y (SecurityListRequest), h (TradingSessionStatus), f (SecurityStatus)
+        auto mt = reader.message_type();
+        auto msgType = mt->value().as_string_view();
 
-    if (msgType != "8" && msgType != "9" && msgType != "j" && msgType != "y"
-        && msgType != "X" && msgType != "W"
-        && msgType != "h" && msgType != "f"
-        && msgType != "AE" && msgType != "AR"
-        ) {
+        if (msgType != "8" && msgType != "9" && msgType != "j" && msgType != "y"
+            && msgType != "X" && msgType != "W"
+            && msgType != "h" && msgType != "f"
+            && msgType != "AE" && msgType != "AR"
+            ) {
+            return false;
+        }
+
+        // Update session state
+        m_state.onIncoming(msg);
+        m_state.lastReceivedTime(m_timestamper());
+        m_state.testRequest(0);
+        m_state.incrNextTargetMsgSeqNum();
+
+        // Push to queue - bypasses SWIG callback overhead
+        std::string rawMsg(reader.message_begin(), reader.message_end());
+        MessageQueue::instance().push(std::string(msgType), rawMsg, receive_time_ns);
+
+        return true;
+    } catch (const std::exception &) {
+        // hffix can throw on malformed input — defer to the slow path,
+        // which wraps parse errors as FIX::InvalidMessage.
         return false;
     }
-
-    // Update session state
-    m_state.onIncoming(msg);
-    m_state.lastReceivedTime(m_timestamper());
-    m_state.testRequest(0);
-    m_state.incrNextTargetMsgSeqNum();
-
-    // Push to queue - bypasses SWIG callback overhead
-    //std::cerr << "[tryFromAppDict] Pushing msgType=" << msgType << " to queue" << std::endl;
-    std::string rawMsg(reader.message_begin(), reader.message_end());
-    MessageQueue::instance().push(std::string(msgType), rawMsg, receive_time_ns);
-    //std::cerr << "[tryFromAppDict] Push complete, queue size=" << MessageQueue::instance().size() << std::endl;
-
-    return true;
 }
 
 void Session::doBadTime(const Message &msg) {
