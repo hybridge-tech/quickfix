@@ -1374,6 +1374,7 @@ bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
     if (msgType != "8" && msgType != "9" && msgType != "j" && msgType != "y"
         && msgType != "X" && msgType != "W"
         && msgType != "h" && msgType != "f"
+        && msgType != "AE" && msgType != "AR"
         ) {
         return false;
     }
