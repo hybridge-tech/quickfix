@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
 set (quickfix_PROJECT_NAME quickfix)
 
@@ -13,7 +13,28 @@ project(${quickfix_PROJECT_NAME} VERSION 1.16.0 LANGUAGES CXX C)
 message("-- Project name ${CMAKE_PROJECT_NAME}")
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if( MSVC )
+  add_compile_options(/MP)
+endif()
+
+# Allow overriding the output directory for libraries and executables.
+# Default: <project-root>/lib
+set(QUICKFIX_LIB_OUTPUT_DIR "${CMAKE_SOURCE_DIR}/lib" CACHE PATH "Top-level output directory for quickfix libraries and runtime files")
+
+# Single-config generators
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${QUICKFIX_LIB_OUTPUT_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${QUICKFIX_LIB_OUTPUT_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${QUICKFIX_LIB_OUTPUT_DIR}")
+
+# Multi-config generators (Visual Studio, Xcode)� set per-config variables
+foreach(cfg IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
+  string(TOUPPER "${cfg}" cfg_up)
+  set("CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${cfg_up}" "${QUICKFIX_LIB_OUTPUT_DIR}")
+  set("CMAKE_LIBRARY_OUTPUT_DIRECTORY_${cfg_up}" "${QUICKFIX_LIB_OUTPUT_DIR}")
+  set("CMAKE_RUNTIME_OUTPUT_DIRECTORY_${cfg_up}" "${QUICKFIX_LIB_OUTPUT_DIR}")
+endforeach()
 
 # Allow overriding the output directory for libraries and executables.
 # Default: <project-root>/lib
@@ -37,10 +58,6 @@ if( MSVC AND STATIC_RUNTIME )
   set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} /MT")
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /MT")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-endif()
-
-if( CMAKE_CXX_STANDARD EQUAL 17 )
-  option( HAVE_CXX17 "Using C++17" ON)
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
@@ -123,4 +140,3 @@ file(REMOVE config.h)
 configure_file(cmake_config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/quickfix/config.h @ONLY)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/spec/ DESTINATION share/quickfix FILES_MATCHING PATTERN "FIX*.xml")
- 

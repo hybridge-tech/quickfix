@@ -32,6 +32,7 @@
 #include "Utility.h"
 #include <algorithm>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <vector>
 
@@ -149,12 +150,10 @@ public:
     return *reinterpret_cast<const T *>(&getFieldRef(T::tag));
   }
 
-#ifdef HAVE_CXX17
   template <typename F> std::optional<F> getFieldOptional() const {
     F field;
     return getFieldIfSet(field) ? std::optional<F>{field} : std::nullopt;
   }
-#endif
 
   /// Get a field without a field class
   const std::string &getField(int tag) const EXCEPT(FieldNotFound) { return getFieldRef(tag).getString(); }
@@ -295,12 +294,7 @@ private:
   Fields::iterator findTag(int tag) { return lookup(m_fields.begin(), m_fields.end(), tag); }
 
   template <typename Iterator> Iterator lookup(Iterator begin, Iterator end, int tag) const {
-#if defined(__SUNPRO_CC)
-    std::size_t numElements;
-    std::distance(begin, end, numElements);
-#else
     std::size_t numElements = std::distance(begin, end);
-#endif
     if (numElements < 16) {
       return std::find_if(begin, end, finder(tag));
     }

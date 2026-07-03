@@ -32,7 +32,6 @@ typedef int socklen_t;
 #include <chrono>
 #include <queue>
 #include <set>
-#include <time.h>
 
 namespace FIX {
 /// Monitors events on a collection of sockets.
@@ -71,7 +70,8 @@ private:
   int m_timeout;
   timeval m_timeval;
 #ifndef SELECT_DECREMENTS_TIME
-  clock_t m_ticks;
+  using Clock = std::chrono::steady_clock;
+  Clock::time_point m_ticks;
 #endif
 
   socket_handle m_signal;

@@ -30,15 +30,10 @@
 #include "FieldNumbers.h"
 #include "FieldTypes.h"
 #include "Utility.h"
+#include <algorithm>
 #include <numeric>
 #include <sstream>
-
-#ifdef HAVE_CXX17
 #include <string_view>
-#endif
-#if defined(__SUNPRO_CC)
-#include <algorithm>
-#endif
 
 namespace FIX {
 /**
@@ -195,13 +190,7 @@ private:
       checksum += (unsigned char)(*str);
     }
 
-#if defined(__SUNPRO_CC)
-    std::ptrdiff_t d;
-    std::distance(start, end, d);
-    return field_metrics(d, checksum);
-#else
     return field_metrics(static_cast<int>(std::distance(start, end)), checksum);
-#endif
   }
 
   static field_metrics calculateMetrics(const std::string &field) {
@@ -236,9 +225,7 @@ public:
   void setValue(const std::string &value) { setString(value); }
   const std::string &getValue() const { return getString(); }
   operator const std::string &() const { return getString(); }
-#ifdef HAVE_CXX17
   operator std::string_view() const { return getString(); }
-#endif
 
   bool operator<(const StringField &rhs) const { return getString() < rhs.getString(); }
   bool operator>(const StringField &rhs) const { return getString() > rhs.getString(); }

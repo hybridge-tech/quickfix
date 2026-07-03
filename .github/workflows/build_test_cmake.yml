@@ -1,5 +1,8 @@
 name: Build with CMake
-on: [pull_request, push]
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 jobs:
     build:
@@ -9,6 +12,7 @@ jobs:
           matrix:
               runner: [windows-2022, ubuntu-latest, macos-latest]
               configuration: [Debug, Release]
+              ssl: ['OFF', 'ON']
               include:
                 - configuration: Debug
                   config: debug
@@ -24,12 +28,29 @@ jobs:
           event_name: ${{ github.event_name }}
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Install OpenSSL (macOS)
+        if: matrix.ssl == 'ON' && matrix.runner == 'macos-latest'
+        run: brew install openssl
+      - name: Install OpenSSL (Linux)
+        if: matrix.ssl == 'ON' && matrix.runner == 'ubuntu-latest'
+        run: sudo apt-get install -y libssl-dev
+      - name: Set OPENSSL_ROOT_DIR (macOS)
+        if: matrix.ssl == 'ON' && matrix.runner == 'macos-latest'
+        shell: bash
+        run: echo "OPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl" >> $GITHUB_ENV
+      - name: Set OPENSSL_ROOT_DIR (Windows)
+        if: matrix.ssl == 'ON' && matrix.runner == 'windows-2022'
+        shell: bash
+        run: echo "OPENSSL_ROOT_DIR=C:/Program Files/OpenSSL" >> $GITHUB_ENV
       - name: Generate
         shell: bash
         run: |
-          cmake . -DCMAKE_BUILD_TYPE=$Configuration -DCMAKE_INSTALL_PREFIX=../install_prefix/$Configuration
+          cmake . -DCMAKE_BUILD_TYPE=$Configuration -DCMAKE_INSTALL_PREFIX=../install_prefix/$Configuration \
+            -DHAVE_SSL=$SSL ${OPENSSL_ROOT_DIR:+-DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR"}
         env:
           Configuration: ${{ matrix.configuration }}
+          SSL: ${{ matrix.ssl }}
+          OPENSSL_ROOT_DIR: ${{ env.OPENSSL_ROOT_DIR }}
       - name: Build
         shell: bash
         run: |
@@ -40,25 +61,25 @@ jobs:
         shell: bash
         if: ${{ matrix.runner == 'windows-2022' }}
         run: |
-          echo "at=$PWD/test/$Config/at/at.exe" >> GITHUB_ENV
-          echo "pt=$PWD/test/$Config/pt/pt.exe" >> GITHUB_ENV
-          echo "ut=$PWD/test/$Config/ut/ut.exe" >> GITHUB_ENV
+          echo "at=$PWD/test/$Config/at/at.exe" >> $GITHUB_ENV
+          echo "pt=$PWD/test/$Config/pt/pt.exe" >> $GITHUB_ENV
+          echo "ut=$PWD/test/$Config/ut/ut.exe" >> $GITHUB_ENV
         env:
           Config: ${{ matrix.config }}
       - name: Set tests paths ubuntu-latest
         shell: bash
         if: ${{ matrix.runner == 'ubuntu-latest' }}
         run: |
-          echo "at=$PWD/test/at" >> GITHUB_ENV
-          echo "pt=$PWD/test/pt" >> GITHUB_ENV
-          echo "ut=$PWD/test/ut" >> GITHUB_ENV
+          echo "at=$PWD/test/at" >> $GITHUB_ENV
+          echo "pt=$PWD/test/pt" >> $GITHUB_ENV
+          echo "ut=$PWD/test/ut" >> $GITHUB_ENV
       - name: Set tests paths macos-latest
         shell: bash
         if: ${{ matrix.runner == 'macos-latest' }}
         run: |
-          echo "at=$PWD/test/at" >> GITHUB_ENV
-          echo "pt=$PWD/test/pt" >> GITHUB_ENV
-          echo "ut=$PWD/test/ut" >> GITHUB_ENV
+          echo "at=$PWD/test/at" >> $GITHUB_ENV
+          echo "pt=$PWD/test/pt" >> $GITHUB_ENV
+          echo "ut=$PWD/test/ut" >> $GITHUB_ENV
       - name: Echo test paths ${{ matrix.runner }}
         shell: bash
         run: |
@@ -76,9 +97,9 @@ jobs:
           AT=$( test -f $at && echo "true" || echo "false" )
           PT=$( test -f $pt && echo "true" || echo "false" )
           UT=$( test -f $ut && echo "true" || echo "false" )
-          echo "at_check=$AT" >> GITHUB_ENV
-          echo "pt_check=$PT" >> GITHUB_ENV
-          echo "ut_check=$UT" >> GITHUB_ENV
+          echo "at_check=$AT" >> $GITHUB_ENV
+          echo "pt_check=$PT" >> $GITHUB_ENV
+          echo "ut_check=$UT" >> $GITHUB_ENV
         env:
           at: ${{ env.at }}
           pt: ${{ env.pt }}
@@ -118,7 +139,8 @@ jobs:
         shell: bash
         working-directory: ./test
         run: |
-          $pt -p $(($PortBase + $Offset)) -c 500000
+          $pt --quickfix-spec-path ../spec -# "~[network]"
+          $pt --quickfix-spec-path ../spec -# "[network]" --port $(($PortBase + $Offset))
         env:
           pt: ${{ env.pt }}
           PortBase: 6668

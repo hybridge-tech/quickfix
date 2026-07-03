@@ -81,12 +81,6 @@
 /////////////////////////////////////////////
 #else
 /////////////////////////////////////////////
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#if defined(__SUNPRO_CC)
-#include <sys/filio.h>
-#endif
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -96,8 +90,11 @@
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 #define INVALID_SOCKET_HANDLE -1
@@ -181,11 +178,8 @@ std::pair<socket_handle, socket_handle> socket_createpair();
 tm time_gmtime(const time_t *t);
 tm time_localtime(const time_t *t);
 
-#if (_MSC_VER >= 1900)
+#ifdef _MSC_VER
 typedef _beginthreadex_proc_type THREAD_START_ROUTINE;
-#define THREAD_PROC unsigned int _stdcall
-#elif (_MSC_VER > 0)
-typedef unsigned int(_stdcall *THREAD_START_ROUTINE)(void *);
 #define THREAD_PROC unsigned int _stdcall
 #else
 extern "C" {
@@ -218,38 +212,18 @@ int file_rename(const char *oldpath, const char *newpath);
 std::string file_appendpath(const std::string &path, const std::string &file);
 } // namespace FIX
 
-#if (_MSC_VER >= 1400)
+#ifdef _MSC_VER
 #define HAVE_FSCANF_S 1
 #define FILE_FSCANF fscanf_s
 #else
 #define FILE_FSCANF fscanf
 #endif
 
-#if (_MSC_VER >= 1400)
+#ifdef _MSC_VER
 #define HAVE_SPRINTF_S 1
 #define STRING_SPRINTF sprintf_s
 #else
 #define STRING_SPRINTF sprintf
-#endif
-
-#if (!defined(_MSC_VER) || (_MSC_VER >= 1300))
-using std::abort;
-using std::abs;
-using std::atof;
-using std::atoi;
-using std::atol;
-using std::exit;
-using std::isdigit;
-using std::labs;
-using std::memcpy;
-using std::memset;
-using std::sprintf;
-using std::strcmp;
-using std::strerror;
-using std::strftime;
-using std::strlen;
-using std::strtod;
-using std::strtol;
 #endif
 
 #endif

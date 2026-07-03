@@ -2389,25 +2389,26 @@ namespace Swig {
 #define SWIGTYPE_p_std__mapT_std__string_std__string_t__const_iterator swig_types[165]
 #define SWIGTYPE_p_std__ostream swig_types[166]
 #define SWIGTYPE_p_std__setT_FIX__SessionID_t swig_types[167]
-#define SWIGTYPE_p_std__string swig_types[168]
-#define SWIGTYPE_p_std__string__size_type swig_types[169]
-#define SWIGTYPE_p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t swig_types[170]
-#define SWIGTYPE_p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__PostgreSQLConnection_t_t swig_types[171]
-#define SWIGTYPE_p_std__vectorT_FIX__FieldBase_ALLOCATORT_FIX__FieldBase_t_t__const_iterator swig_types[172]
-#define SWIGTYPE_p_std__vectorT_FIX__FieldBase_ALLOCATORT_FIX__FieldBase_t_t__iterator swig_types[173]
-#define SWIGTYPE_p_std__vectorT_std__string_t swig_types[174]
-#define SWIGTYPE_p_swig__ConstIterator swig_types[175]
-#define SWIGTYPE_p_swig__GC_VALUE swig_types[176]
-#define SWIGTYPE_p_swig__Iterator swig_types[177]
-#define SWIGTYPE_p_tm swig_types[178]
-#define SWIGTYPE_p_unsigned_char swig_types[179]
-#define SWIGTYPE_p_unsigned_int swig_types[180]
-#define SWIGTYPE_p_unsigned_long_long swig_types[181]
-#define SWIGTYPE_p_unsigned_short swig_types[182]
-#define SWIGTYPE_p_value_type swig_types[183]
-#define SWIGTYPE_p_void swig_types[184]
-static swig_type_info *swig_types[186];
-static swig_module_info swig_module = {swig_types, 185, 0, 0, 0, 0};
+#define SWIGTYPE_p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t swig_types[168]
+#define SWIGTYPE_p_std__string swig_types[169]
+#define SWIGTYPE_p_std__string__size_type swig_types[170]
+#define SWIGTYPE_p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t swig_types[171]
+#define SWIGTYPE_p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__PostgreSQLConnection_t_t swig_types[172]
+#define SWIGTYPE_p_std__vectorT_FIX__FieldBase_ALLOCATORT_FIX__FieldBase_t_t__const_iterator swig_types[173]
+#define SWIGTYPE_p_std__vectorT_FIX__FieldBase_ALLOCATORT_FIX__FieldBase_t_t__iterator swig_types[174]
+#define SWIGTYPE_p_std__vectorT_std__string_t swig_types[175]
+#define SWIGTYPE_p_swig__ConstIterator swig_types[176]
+#define SWIGTYPE_p_swig__GC_VALUE swig_types[177]
+#define SWIGTYPE_p_swig__Iterator swig_types[178]
+#define SWIGTYPE_p_tm swig_types[179]
+#define SWIGTYPE_p_unsigned_char swig_types[180]
+#define SWIGTYPE_p_unsigned_int swig_types[181]
+#define SWIGTYPE_p_unsigned_long_long swig_types[182]
+#define SWIGTYPE_p_unsigned_short swig_types[183]
+#define SWIGTYPE_p_value_type swig_types[184]
+#define SWIGTYPE_p_void swig_types[185]
+static swig_type_info *swig_types[187];
+static swig_module_info swig_module = {swig_types, 186, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -52586,6 +52587,15 @@ _wrap_CorporateAction_SUCCESSION_EVENT_get(VALUE self) {
 
 
 SWIGINTERN VALUE
+_wrap_QuoteAckStatus_RECEIVED_NOT_YET_PROCESSED_get(VALUE self) {
+  VALUE _val;
+  
+  _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_RECEIVED_NOT_YET_PROCESSED));
+  return _val;
+}
+
+
+SWIGINTERN VALUE
 _wrap_QuoteAckStatus_ACCEPTED_get(VALUE self) {
   VALUE _val;
   
@@ -52595,55 +52605,10 @@ _wrap_QuoteAckStatus_ACCEPTED_get(VALUE self) {
 
 
 SWIGINTERN VALUE
-_wrap_QuoteAckStatus_CANCEL_FOR_SYMBOL_get(VALUE self) {
-  VALUE _val;
-  
-  _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_CANCEL_FOR_SYMBOL));
-  return _val;
-}
-
-
-SWIGINTERN VALUE
-_wrap_QuoteAckStatus_CANCELED_FOR_SECURITY_TYPE_get(VALUE self) {
-  VALUE _val;
-  
-  _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_CANCELED_FOR_SECURITY_TYPE));
-  return _val;
-}
-
-
-SWIGINTERN VALUE
-_wrap_QuoteAckStatus_CANCELED_FOR_UNDERLYING_get(VALUE self) {
-  VALUE _val;
-  
-  _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_CANCELED_FOR_UNDERLYING));
-  return _val;
-}
-
-
-SWIGINTERN VALUE
-_wrap_QuoteAckStatus_CANCELED_ALL_get(VALUE self) {
-  VALUE _val;
-  
-  _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_CANCELED_ALL));
-  return _val;
-}
-
-
-SWIGINTERN VALUE
 _wrap_QuoteAckStatus_REJECTED_get(VALUE self) {
   VALUE _val;
   
   _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_REJECTED));
-  return _val;
-}
-
-
-SWIGINTERN VALUE
-_wrap_QuoteAckStatus_RECEIVED_NOT_YET_PROCESSED_get(VALUE self) {
-  VALUE _val;
-  
-  _val = SWIG_From_int(static_cast< int >(FIX::QuoteAckStatus_RECEIVED_NOT_YET_PROCESSED));
   return _val;
 }
 
@@ -57176,10 +57141,10 @@ _wrap_YieldType_CLOSING_YIELD_get(VALUE self) {
 
 
 SWIGINTERN VALUE
-_wrap_YieldType_YIELD_VALUE_OF132_get(VALUE self) {
+_wrap_YieldType_FIX4n_YIELD_VALUE_OF32NDS_get(VALUE self) {
   VALUE _val;
   
-  _val = SWIG_FromCharPtr(FIX::YieldType_YIELD_VALUE_OF132);
+  _val = SWIG_FromCharPtr(FIX::YieldType_FIX4n_YIELD_VALUE_OF32NDS);
   return _val;
 }
 
@@ -61667,28 +61632,55 @@ _wrap_MatchType_EXACT_MATCH_PLUS_EXEC_TIME_get(VALUE self) {
 
 
 SWIGINTERN VALUE
-_wrap_MatchType_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get(VALUE self) {
+_wrap_MatchType_FIX50ONLY_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get(VALUE self) {
   VALUE _val;
   
-  _val = SWIG_FromCharPtr(FIX::MatchType_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT);
+  _val = SWIG_FromCharPtr(FIX::MatchType_FIX50ONLY_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT);
   return _val;
 }
 
 
 SWIGINTERN VALUE
-_wrap_MatchType_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get(VALUE self) {
+_wrap_MatchType_FIX50ONLY_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get(VALUE self) {
   VALUE _val;
   
-  _val = SWIG_FromCharPtr(FIX::MatchType_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT);
+  _val = SWIG_FromCharPtr(FIX::MatchType_FIX50ONLY_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT);
   return _val;
 }
 
 
 SWIGINTERN VALUE
-_wrap_MatchType_CONTINUOUS_AUTO_MATCH_get(VALUE self) {
+_wrap_MatchType_FIX50ONLY_CONTINUOUS_AUTO_MATCH_get(VALUE self) {
   VALUE _val;
   
-  _val = SWIG_FromCharPtr(FIX::MatchType_CONTINUOUS_AUTO_MATCH);
+  _val = SWIG_FromCharPtr(FIX::MatchType_FIX50ONLY_CONTINUOUS_AUTO_MATCH);
+  return _val;
+}
+
+
+SWIGINTERN VALUE
+_wrap_MatchType_FIX50ONLY_CROSS_AUCTION_get(VALUE self) {
+  VALUE _val;
+  
+  _val = SWIG_FromCharPtr(FIX::MatchType_FIX50ONLY_CROSS_AUCTION);
+  return _val;
+}
+
+
+SWIGINTERN VALUE
+_wrap_MatchType_FIX50ONLY_COUNTER_ORDER_SELECTION_get(VALUE self) {
+  VALUE _val;
+  
+  _val = SWIG_FromCharPtr(FIX::MatchType_FIX50ONLY_COUNTER_ORDER_SELECTION);
+  return _val;
+}
+
+
+SWIGINTERN VALUE
+_wrap_MatchType_FIX50ONLY_CALL_AUCTION_get(VALUE self) {
+  VALUE _val;
+  
+  _val = SWIG_FromCharPtr(FIX::MatchType_FIX50ONLY_CALL_AUCTION);
   return _val;
 }
 
@@ -96991,6 +96983,15 @@ _wrap_CERTIFICATE_VERIFY_LEVEL_get(VALUE self) {
 
 
 SWIGINTERN VALUE
+_wrap_ALLOWED_REMOTE_ADDRESSES_get(VALUE self) {
+  VALUE _val;
+  
+  _val = SWIG_FromCharPtr(FIX::ALLOWED_REMOTE_ADDRESSES);
+  return _val;
+}
+
+
+SWIGINTERN VALUE
 _wrap_SSL_PROTOCOL_get(VALUE self) {
   VALUE _val;
   
@@ -101475,6 +101476,141 @@ _wrap_Session_setIsNonStopSession(int argc, VALUE *argv, VALUE self) {
   }
   return Qnil;
 fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_Session_getAllowedRemoteAddresses(int argc, VALUE *argv, VALUE self) {
+  FIX::Session *arg1 = (FIX::Session *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  std::set< std::string,std::less< std::string >,std::allocator< std::string > > *result = 0 ;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 0) || (argc > 0)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 0)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(self, &argp1,SWIGTYPE_p_FIX__Session, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "FIX::Session const *","getAllowedRemoteAddresses", 1, self )); 
+  }
+  arg1 = reinterpret_cast< FIX::Session * >(argp1);
+  {
+    if(tryRubyException([&]() mutable 
+        {
+      result = (std::set< std::string,std::less< std::string >,std::allocator< std::string > > *) &((FIX::Session const *)arg1)->getAllowedRemoteAddresses();
+          return self;
+        fail:
+          return Qnil;
+        }) == Qnil) 
+    {
+      SWIG_fail;
+    }
+  }
+  vresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t, 0 |  0 );
+  return vresult;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_Session_setAllowedRemoteAddresses(int argc, VALUE *argv, VALUE self) {
+  FIX::Session *arg1 = (FIX::Session *) 0 ;
+  std::set< std::string,std::less< std::string >,std::allocator< std::string > > *arg2 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(self, &argp1,SWIGTYPE_p_FIX__Session, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "FIX::Session *","setAllowedRemoteAddresses", 1, self )); 
+  }
+  arg1 = reinterpret_cast< FIX::Session * >(argp1);
+  res2 = SWIG_ConvertPtr(argv[0], &argp2, SWIGTYPE_p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t,  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), Ruby_Format_TypeError( "", "std::set< std::string,std::less< std::string >,std::allocator< std::string > > const &","setAllowedRemoteAddresses", 2, argv[0] )); 
+  }
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, Ruby_Format_TypeError("invalid null reference ", "std::set< std::string,std::less< std::string >,std::allocator< std::string > > const &","setAllowedRemoteAddresses", 2, argv[0])); 
+  }
+  arg2 = reinterpret_cast< std::set< std::string,std::less< std::string >,std::allocator< std::string > > * >(argp2);
+  {
+    if(tryRubyException([&]() mutable 
+        {
+      (arg1)->setAllowedRemoteAddresses((std::set< std::string,std::less< std::string >,std::allocator< std::string > > const &)*arg2);
+          return self;
+        fail:
+          return Qnil;
+        }) == Qnil) 
+    {
+      SWIG_fail;
+    }
+  }
+  return Qnil;
+fail:
+  return Qnil;
+}
+
+
+SWIGINTERN VALUE
+_wrap_Session_inAllowedRemoteAddresses(int argc, VALUE *argv, VALUE self) {
+  FIX::Session *arg1 = (FIX::Session *) 0 ;
+  std::string *arg2 = 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
+  bool result;
+  VALUE vresult = Qnil;
+  
+  if ((argc < 1) || (argc > 1)) {
+    rb_raise(rb_eArgError, "wrong # of arguments(%d for 1)",argc); SWIG_fail;
+  }
+  res1 = SWIG_ConvertPtr(self, &argp1,SWIGTYPE_p_FIX__Session, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), Ruby_Format_TypeError( "", "FIX::Session const *","inAllowedRemoteAddresses", 1, self )); 
+  }
+  arg1 = reinterpret_cast< FIX::Session * >(argp1);
+  {
+    std::string *ptr = (std::string *)0;
+    res2 = SWIG_AsPtr_std_string(argv[0], &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), Ruby_Format_TypeError( "", "std::string const &","inAllowedRemoteAddresses", 2, argv[0] )); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, Ruby_Format_TypeError("invalid null reference ", "std::string const &","inAllowedRemoteAddresses", 2, argv[0])); 
+    }
+    arg2 = ptr;
+  }
+  {
+    if(tryRubyException([&]() mutable 
+        {
+      result = (bool)((FIX::Session const *)arg1)->inAllowedRemoteAddresses((std::string const &)*arg2);
+          return self;
+        fail:
+          return Qnil;
+        }) == Qnil) 
+    {
+      SWIG_fail;
+    }
+  }
+  vresult = SWIG_From_bool(static_cast< bool >(result));
+  {
+    if( std::string("std::string const &") == "std::string &" ) 	 
+    {
+      rb_str_resize( argv[0], 0 );
+      rb_str_append( argv[0], rb_str_new2(arg2->c_str()) );
+    }
+  }
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  return vresult;
+fail:
+  if (SWIG_IsNewObj(res2)) delete arg2;
   return Qnil;
 }
 
@@ -123526,6 +123662,7 @@ static swig_type_info _swigt__p_std__mapT_int_std__vectorT_FIX__FieldMap_p_std__
 static swig_type_info _swigt__p_std__mapT_std__string_std__string_t__const_iterator = {"_p_std__mapT_std__string_std__string_t__const_iterator", "FIX::Dictionary::iterator *|std::map< std::string,std::string >::const_iterator *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__ostream = {"_p_std__ostream", "std::ostream *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__setT_FIX__SessionID_t = {"_p_std__setT_FIX__SessionID_t", "std::set< FIX::SessionID,std::less< FIX::SessionID >,std::allocator< FIX::SessionID > > *|std::set< FIX::SessionID > *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t = {"_p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t", "std::set< std::string,std::less< std::string >,std::allocator< std::string > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string = {"_p_std__string", "FIX::COUNTRY *|FIX::CURRENCY *|FIX::DATA *|FIX::DAYOFMONTH *|FIX::EXCHANGE *|FIX::LANGUAGE *|FIX::LOCALMKTDATE *|FIX::LOCALMKTTIME *|FIX::MONTHYEAR *|FIX::MULTIPLECHARVALUE *|FIX::MULTIPLESTRINGVALUE *|FIX::MULTIPLEVALUESTRING *|FIX::STRING *|FIX::TZTIMEONLY *|FIX::TZTIMESTAMP *|FIX::XID *|FIX::XIDREF *|FIX::XMLDATA *|std::string *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string__size_type = {"_p_std__string__size_type", "std::string::size_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t = {"_p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t", "FIX::MySQLConnectionPoolPtr *|std::unique_ptr< FIX::DatabaseConnectionPool< FIX::MySQLConnection > > *", 0, 0, (void*)0, 0};
@@ -123713,6 +123850,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_std__mapT_std__string_std__string_t__const_iterator,
   &_swigt__p_std__ostream,
   &_swigt__p_std__setT_FIX__SessionID_t,
+  &_swigt__p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t,
   &_swigt__p_std__string,
   &_swigt__p_std__string__size_type,
   &_swigt__p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t,
@@ -123900,6 +124038,7 @@ static swig_cast_info _swigc__p_std__mapT_int_std__vectorT_FIX__FieldMap_p_std__
 static swig_cast_info _swigc__p_std__mapT_std__string_std__string_t__const_iterator[] = {  {&_swigt__p_std__mapT_std__string_std__string_t__const_iterator, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__ostream[] = {  {&_swigt__p_std__ostream, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__setT_FIX__SessionID_t[] = {  {&_swigt__p_std__setT_FIX__SessionID_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t[] = {  {&_swigt__p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__string[] = {  {&_swigt__p_std__string, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__string__size_type[] = {  {&_swigt__p_std__string__size_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t[] = {  {&_swigt__p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t, 0, 0, 0},{0, 0, 0, 0}};
@@ -124087,6 +124226,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_std__mapT_std__string_std__string_t__const_iterator,
   _swigc__p_std__ostream,
   _swigc__p_std__setT_FIX__SessionID_t,
+  _swigc__p_std__setT_std__string_std__lessT_std__string_t_std__allocatorT_std__string_t_t,
   _swigc__p_std__string,
   _swigc__p_std__string__size_type,
   _swigc__p_std__unique_ptrT_FIX__DatabaseConnectionPoolT_FIX__MySQLConnection_t_t,
@@ -126429,13 +126569,9 @@ SWIGEXPORT void Init_quickfix(void) {
   rb_define_singleton_method(mQuickfix, "CorporateAction_CUSIP", VALUEFUNC(_wrap_CorporateAction_CUSIP_get), 0);
   rb_define_singleton_method(mQuickfix, "CorporateAction_LEAP_ROLLOVER", VALUEFUNC(_wrap_CorporateAction_LEAP_ROLLOVER_get), 0);
   rb_define_singleton_method(mQuickfix, "CorporateAction_SUCCESSION_EVENT", VALUEFUNC(_wrap_CorporateAction_SUCCESSION_EVENT_get), 0);
-  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_ACCEPTED", VALUEFUNC(_wrap_QuoteAckStatus_ACCEPTED_get), 0);
-  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_CANCEL_FOR_SYMBOL", VALUEFUNC(_wrap_QuoteAckStatus_CANCEL_FOR_SYMBOL_get), 0);
-  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_CANCELED_FOR_SECURITY_TYPE", VALUEFUNC(_wrap_QuoteAckStatus_CANCELED_FOR_SECURITY_TYPE_get), 0);
-  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_CANCELED_FOR_UNDERLYING", VALUEFUNC(_wrap_QuoteAckStatus_CANCELED_FOR_UNDERLYING_get), 0);
-  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_CANCELED_ALL", VALUEFUNC(_wrap_QuoteAckStatus_CANCELED_ALL_get), 0);
-  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_REJECTED", VALUEFUNC(_wrap_QuoteAckStatus_REJECTED_get), 0);
   rb_define_singleton_method(mQuickfix, "QuoteAckStatus_RECEIVED_NOT_YET_PROCESSED", VALUEFUNC(_wrap_QuoteAckStatus_RECEIVED_NOT_YET_PROCESSED_get), 0);
+  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_ACCEPTED", VALUEFUNC(_wrap_QuoteAckStatus_ACCEPTED_get), 0);
+  rb_define_singleton_method(mQuickfix, "QuoteAckStatus_REJECTED", VALUEFUNC(_wrap_QuoteAckStatus_REJECTED_get), 0);
   rb_define_singleton_method(mQuickfix, "QuoteCancelType_CANCEL_FOR_ONE_OR_MORE_SECURITIES", VALUEFUNC(_wrap_QuoteCancelType_CANCEL_FOR_ONE_OR_MORE_SECURITIES_get), 0);
   rb_define_singleton_method(mQuickfix, "QuoteCancelType_CANCEL_FOR_SECURITY_TYPE", VALUEFUNC(_wrap_QuoteCancelType_CANCEL_FOR_SECURITY_TYPE_get), 0);
   rb_define_singleton_method(mQuickfix, "QuoteCancelType_CANCEL_FOR_UNDERLYING_SECURITY", VALUEFUNC(_wrap_QuoteCancelType_CANCEL_FOR_UNDERLYING_SECURITY_get), 0);
@@ -126939,7 +127075,7 @@ SWIGEXPORT void Init_quickfix(void) {
   rb_define_singleton_method(mQuickfix, "YieldType_MOST_RECENT_CLOSING_YIELD", VALUEFUNC(_wrap_YieldType_MOST_RECENT_CLOSING_YIELD_get), 0);
   rb_define_singleton_method(mQuickfix, "YieldType_CLOSING_YIELD_MOST_RECENT_MONTH", VALUEFUNC(_wrap_YieldType_CLOSING_YIELD_MOST_RECENT_MONTH_get), 0);
   rb_define_singleton_method(mQuickfix, "YieldType_CLOSING_YIELD", VALUEFUNC(_wrap_YieldType_CLOSING_YIELD_get), 0);
-  rb_define_singleton_method(mQuickfix, "YieldType_YIELD_VALUE_OF132", VALUEFUNC(_wrap_YieldType_YIELD_VALUE_OF132_get), 0);
+  rb_define_singleton_method(mQuickfix, "YieldType_FIX4n_YIELD_VALUE_OF32NDS", VALUEFUNC(_wrap_YieldType_FIX4n_YIELD_VALUE_OF32NDS_get), 0);
   rb_define_singleton_method(mQuickfix, "TradedFlatSwitch_NO", VALUEFUNC(_wrap_TradedFlatSwitch_NO_get), 0);
   rb_define_singleton_method(mQuickfix, "TradedFlatSwitch_YES", VALUEFUNC(_wrap_TradedFlatSwitch_YES_get), 0);
   rb_define_singleton_method(mQuickfix, "QuoteStatus_REMOVED_FROM_MARKET", VALUEFUNC(_wrap_QuoteStatus_REMOVED_FROM_MARKET_get), 0);
@@ -127438,9 +127574,12 @@ SWIGEXPORT void Init_quickfix(void) {
   rb_define_singleton_method(mQuickfix, "MatchType_EXACT_MATCH_PLUS4_BADGES_EXEC_TIME", VALUEFUNC(_wrap_MatchType_EXACT_MATCH_PLUS4_BADGES_EXEC_TIME_get), 0);
   rb_define_singleton_method(mQuickfix, "MatchType_A1_EXACT_MATCH_SUMMARIZED_QUANTITY", VALUEFUNC(_wrap_MatchType_A1_EXACT_MATCH_SUMMARIZED_QUANTITY_get), 0);
   rb_define_singleton_method(mQuickfix, "MatchType_EXACT_MATCH_PLUS_EXEC_TIME", VALUEFUNC(_wrap_MatchType_EXACT_MATCH_PLUS_EXEC_TIME_get), 0);
-  rb_define_singleton_method(mQuickfix, "MatchType_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT", VALUEFUNC(_wrap_MatchType_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get), 0);
-  rb_define_singleton_method(mQuickfix, "MatchType_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT", VALUEFUNC(_wrap_MatchType_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get), 0);
-  rb_define_singleton_method(mQuickfix, "MatchType_CONTINUOUS_AUTO_MATCH", VALUEFUNC(_wrap_MatchType_CONTINUOUS_AUTO_MATCH_get), 0);
+  rb_define_singleton_method(mQuickfix, "MatchType_FIX50ONLY_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT", VALUEFUNC(_wrap_MatchType_FIX50ONLY_ONE_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get), 0);
+  rb_define_singleton_method(mQuickfix, "MatchType_FIX50ONLY_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT", VALUEFUNC(_wrap_MatchType_FIX50ONLY_TWO_PARTY_PRIVATELY_NEGOTIATED_TRADE_REPORT_get), 0);
+  rb_define_singleton_method(mQuickfix, "MatchType_FIX50ONLY_CONTINUOUS_AUTO_MATCH", VALUEFUNC(_wrap_MatchType_FIX50ONLY_CONTINUOUS_AUTO_MATCH_get), 0);
+  rb_define_singleton_method(mQuickfix, "MatchType_FIX50ONLY_CROSS_AUCTION", VALUEFUNC(_wrap_MatchType_FIX50ONLY_CROSS_AUCTION_get), 0);
+  rb_define_singleton_method(mQuickfix, "MatchType_FIX50ONLY_COUNTER_ORDER_SELECTION", VALUEFUNC(_wrap_MatchType_FIX50ONLY_COUNTER_ORDER_SELECTION_get), 0);
+  rb_define_singleton_method(mQuickfix, "MatchType_FIX50ONLY_CALL_AUCTION", VALUEFUNC(_wrap_MatchType_FIX50ONLY_CALL_AUCTION_get), 0);
   rb_define_singleton_method(mQuickfix, "MatchType_CROSS_AUCTION", VALUEFUNC(_wrap_MatchType_CROSS_AUCTION_get), 0);
   rb_define_singleton_method(mQuickfix, "MatchType_COUNTER_ORDER_SELECTION", VALUEFUNC(_wrap_MatchType_COUNTER_ORDER_SELECTION_get), 0);
   rb_define_singleton_method(mQuickfix, "MatchType_CALL_AUCTION", VALUEFUNC(_wrap_MatchType_CALL_AUCTION_get), 0);
@@ -131165,6 +131304,7 @@ SWIGEXPORT void Init_quickfix(void) {
   rb_define_singleton_method(mQuickfix, "CERTIFICATE_REVOCATION_LIST_FILE", VALUEFUNC(_wrap_CERTIFICATE_REVOCATION_LIST_FILE_get), 0);
   rb_define_singleton_method(mQuickfix, "CERTIFICATE_REVOCATION_LIST_DIRECTORY", VALUEFUNC(_wrap_CERTIFICATE_REVOCATION_LIST_DIRECTORY_get), 0);
   rb_define_singleton_method(mQuickfix, "CERTIFICATE_VERIFY_LEVEL", VALUEFUNC(_wrap_CERTIFICATE_VERIFY_LEVEL_get), 0);
+  rb_define_singleton_method(mQuickfix, "ALLOWED_REMOTE_ADDRESSES", VALUEFUNC(_wrap_ALLOWED_REMOTE_ADDRESSES_get), 0);
   rb_define_singleton_method(mQuickfix, "SSL_PROTOCOL", VALUEFUNC(_wrap_SSL_PROTOCOL_get), 0);
   rb_define_singleton_method(mQuickfix, "SSL_CIPHER_SUITE", VALUEFUNC(_wrap_SSL_CIPHER_SUITE_get), 0);
   rb_define_singleton_method(mQuickfix, "TLS_CIPHER_SUITES", VALUEFUNC(_wrap_TLS_CIPHER_SUITES_get), 0);
@@ -131255,6 +131395,9 @@ SWIGEXPORT void Init_quickfix(void) {
   rb_define_method(SwigClassSession.klass, "setSendNextExpectedMsgSeqNum", VALUEFUNC(_wrap_Session_setSendNextExpectedMsgSeqNum), -1);
   rb_define_method(SwigClassSession.klass, "getIsNonStopSession", VALUEFUNC(_wrap_Session_getIsNonStopSession), -1);
   rb_define_method(SwigClassSession.klass, "setIsNonStopSession", VALUEFUNC(_wrap_Session_setIsNonStopSession), -1);
+  rb_define_method(SwigClassSession.klass, "getAllowedRemoteAddresses", VALUEFUNC(_wrap_Session_getAllowedRemoteAddresses), -1);
+  rb_define_method(SwigClassSession.klass, "setAllowedRemoteAddresses", VALUEFUNC(_wrap_Session_setAllowedRemoteAddresses), -1);
+  rb_define_method(SwigClassSession.klass, "inAllowedRemoteAddresses", VALUEFUNC(_wrap_Session_inAllowedRemoteAddresses), -1);
   rb_define_method(SwigClassSession.klass, "setResponder", VALUEFUNC(_wrap_Session_setResponder), -1);
   rb_define_method(SwigClassSession.klass, "send", VALUEFUNC(_wrap_Session_send), -1);
   rb_define_method(SwigClassSession.klass, "next", VALUEFUNC(_wrap_Session_next), -1);
