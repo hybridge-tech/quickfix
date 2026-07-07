@@ -3,6 +3,6 @@
 
 /* #undef HAVE_MYSQL */
 /* #undef HAVE_POSTGRESQL */
-/* #undef HAVE_SSL */
+#define HAVE_SSL 1
 
 #endif
