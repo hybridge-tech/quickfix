@@ -28,7 +28,11 @@
 
 #include "Log.h"
 #include "SessionSettings.h"
+#include <atomic>
+#include <condition_variable>
 #include <fstream>
+#include <mutex>
+#include <thread>
 
 namespace FIX {
 /**
@@ -84,19 +88,30 @@ public:
   void clear();
   void backup();
 
+  // Hot path: buffered write only ('\n', no flush syscall). A background
+  // flusher thread flushes every ~100ms so `tail -f` stays near-real-time.
   void onIncoming(const std::string &value) {
-    m_messages << UtcTimeStampConvertor::convert(UtcTimeStamp::now(), 9) << " : " << value << std::endl;
+    std::lock_guard<std::mutex> lock(m_logMutex);
+    m_messages << UtcTimeStampConvertor::convert(UtcTimeStamp::now(), 9) << " : " << value << '\n';
+    m_dirty.store(true, std::memory_order_release);
   }
   void onOutgoing(const std::string &value) {
-    m_messages << UtcTimeStampConvertor::convert(UtcTimeStamp::now(), 9) << " : " << value << std::endl;
+    std::lock_guard<std::mutex> lock(m_logMutex);
+    m_messages << UtcTimeStampConvertor::convert(UtcTimeStamp::now(), 9) << " : " << value << '\n';
+    m_dirty.store(true, std::memory_order_release);
   }
   void onEvent(const std::string &value) {
+    // Events are rare — keep the immediate flush for error visibility.
+    std::lock_guard<std::mutex> lock(m_logMutex);
     m_event << UtcTimeStampConvertor::convert(UtcTimeStamp::now(), 9) << " : " << value << std::endl;
   }
 
 private:
   std::string generatePrefix(const SessionID &sessionID);
   void init(std::string path, std::string backupPath, const std::string &prefix);
+  void startFlusher();
+  void stopFlusher();
+  void flusherLoop();
 
   std::ofstream m_messages;
   std::ofstream m_event;
@@ -104,6 +119,13 @@ private:
   std::string m_eventFileName;
   std::string m_fullPrefix;
   std::string m_fullBackupPrefix;
+
+  std::mutex m_logMutex;
+  std::thread m_flusher;
+  std::condition_variable m_flusherCv;
+  std::mutex m_flusherMutex;
+  std::atomic<bool> m_running{false};
+  std::atomic<bool> m_dirty{false};
 };
 } // namespace FIX
 

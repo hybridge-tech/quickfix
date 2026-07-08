@@ -25,6 +25,8 @@
 
 #include "FileLog.h"
 
+#include <chrono>
+
 namespace FIX {
 Log *FileLogFactory::create() {
   if (++m_globalLogCount > 1) {
@@ -127,14 +129,46 @@ void FileLog::init(std::string path, std::string backupPath, const std::string &
   if (!m_event.is_open()) {
     throw ConfigError("Could not open event file: " + m_eventFileName);
   }
+
+  startFlusher();
+}
+
+void FileLog::startFlusher() {
+  m_running.store(true);
+  m_flusher = std::thread(&FileLog::flusherLoop, this);
+}
+
+void FileLog::stopFlusher() {
+  {
+    std::lock_guard<std::mutex> lock(m_flusherMutex);
+    m_running.store(false);
+  }
+  m_flusherCv.notify_one();
+  if (m_flusher.joinable()) {
+    m_flusher.join();
+  }
+}
+
+void FileLog::flusherLoop() {
+  std::unique_lock<std::mutex> lock(m_flusherMutex);
+  while (m_running.load()) {
+    m_flusherCv.wait_for(lock, std::chrono::milliseconds(100), [this] { return !m_running.load(); });
+    if (m_dirty.exchange(false, std::memory_order_acq_rel)) {
+      std::lock_guard<std::mutex> logLock(m_logMutex);
+      m_messages.flush();
+    }
+  }
 }
 
 FileLog::~FileLog() {
+  stopFlusher();
+  std::lock_guard<std::mutex> lock(m_logMutex);
   m_messages.close();
   m_event.close();
 }
 
 void FileLog::clear() {
+  std::lock_guard<std::mutex> lock(m_logMutex);
   m_messages.close();
   m_event.close();
 
@@ -143,6 +177,7 @@ void FileLog::clear() {
 }
 
 void FileLog::backup() {
+  std::lock_guard<std::mutex> lock(m_logMutex);
   m_messages.close();
   m_event.close();
 

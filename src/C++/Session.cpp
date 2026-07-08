@@ -613,10 +613,7 @@ bool Session::sendRaw(Message &message, SEQNUM num) {
   }
 }
 
-// --- BEGIN CUSTOM PATCH: sendRawDict ---------------------------------
-#include <vector>
-#include <string>
-#include <iostream>
+// --- BEGIN CUSTOM PATCH: encodeAndSend (used by SendQueue) ------------
 bool FIX::Session::encodeAndSend(
     const std::vector<std::pair<int, std::string>>& headerFields,
     const std::vector<std::pair<int, std::string>>& bodyFields)
@@ -685,188 +682,6 @@ bool FIX::Session::encodeAndSend(
         return false;
     }
 }
-
-#include <map>
-bool FIX::Session:: encodeFixMessage(
-                        const std::map<std::string, std::string>& headerFields,
-                        const std::map<std::string, std::string>& bodyFields
-                    ) {
-                        // Validate inputs
-                        if (headerFields.empty() || headerFields.find("8") == headerFields.end()) {
-                            throw std::invalid_argument("Header must include tag 8 (BeginString)");
-                        }
-
-                        // Ensure tags 34 (MsgSeqNum) and 35 (MsgType) are in headerFields
-                        if (headerFields.find("34") == headerFields.end() || headerFields.find("35") == headerFields.end()) {
-                            throw std::invalid_argument("Header must include tags 34 (MsgSeqNum) and 35 (MsgType)");
-                        }
-
-                        // Precompute body length: all fields after 9=XXX| (remaining header fields + body fields)
-                        size_t bodyLength = 0;
-                        // Header fields after tag 8
-                        for (auto it = headerFields.begin(); it != headerFields.end(); ++it) {
-                            if (it->first != "8") { // Skip tag 8
-                                bodyLength += it->first.size() + 1 + it->second.size() + 1; // tag + '=' + value + SOH
-                            }
-                        }
-                        // Body fields
-                        for (const auto& field : bodyFields) {
-                            bodyLength += field.first.size() + 1 + field.second.size() + 1; // tag + '=' + value + SOH
-                        }
-
-                        // Convert body length to string
-                        std::string bodyLengthStr = std::to_string(bodyLength);
-                        size_t bodyLengthFieldSize = 2 + bodyLengthStr.size() + 1; // "9=XXX|"
-
-                        // Calculate total message size for reserve
-                        size_t totalLength = bodyLength + bodyLengthFieldSize + 3 + 3 + 1; // "10=XXX|"
-                        totalLength += 1 + 1 + headerFields.at("8").size() + 1; // "8" + '=' + value + SOH
-
-                        // Reserve string capacity to avoid reallocations
-                        std::string fixMessage;
-                        fixMessage.reserve(totalLength);
-
-                        // Append tag 8 (BeginString)
-                        fixMessage += "8=";
-                        fixMessage += headerFields.at("8");
-                        fixMessage += '\x01';
-
-                        // Append tag 9 (BodyLength)
-                        fixMessage += "9=";
-                        fixMessage += bodyLengthStr;
-                        fixMessage += '\x01';
-
-                        // Append remaining header fields
-                        for (auto it = headerFields.begin(); it != headerFields.end(); ++it) {
-                            if (it->first != "8") { // Skip tag 8
-                                fixMessage += it->first;
-                                fixMessage += '=';
-                                fixMessage += it->second;
-                                fixMessage += '\x01';
-                            }
-                        }
-
-                        // Append body fields
-                        for (const auto& field : bodyFields) {
-                            fixMessage += field.first;
-                            fixMessage += '=';
-                            fixMessage += field.second;
-                            fixMessage += '\x01';
-                        }
-
-                        // Calculate checksum: sum ASCII values up to this point
-                        unsigned long sum = 0;
-                        for (char c : fixMessage) {
-                            sum += static_cast<unsigned char>(c);
-                        }
-                        int checksum = sum % 256;
-
-                        // Append checksum field (10=XXX)
-                        fixMessage += "10=";
-                        std::ostringstream oss;
-                        oss << std::setfill('0') << std::setw(3) << checksum;
-                        fixMessage += oss.str();
-                        fixMessage += '\x01';
-
-                    m_state.onOutgoing(fixMessage);
-                    bool sentok = m_pResponder->send(fixMessage);
-            //        if (autoSeqNum && sentok)  {
-            //            m_state.incrNextSenderMsgSeqNum();
-            //        }
-                    std::cout << fixMessage << std::endl;
-                    return sentok;
-
-                    }
-#include <iomanip>
-
-bool FIX::Session::sendRawDict(
-    const std::vector<std::pair<int, std::string>>& headerFields,
-    const std::vector<std::pair<int, std::string>>& bodyFields,
-    bool autoSeqNum)
-{
-    try
-    {
-    // Precompute body length: all fields after 9=XXX| (remaining header fields + body fields)
-        size_t bodyLength = 0;
-        // Include header fields after tag 8
-        for (size_t i = 1; i < headerFields.size(); ++i) { // Skip tag 8
-            std::string tagStr = std::to_string(headerFields[i].first);
-            bodyLength += tagStr.size() + 1 + headerFields[i].second.size() + 1; // tag + '=' + value + SOH
-        }
-        // Include all body fields
-        for (const auto& field : bodyFields) {
-            std::string tagStr = std::to_string(field.first);
-            bodyLength += tagStr.size() + 1 + field.second.size() + 1; // tag + '=' + value + SOH
-        }
-
-        // Convert body length to string
-        std::string bodyLengthStr = std::to_string(bodyLength);
-        size_t bodyLengthFieldSize = 2 + bodyLengthStr.size() + 1; // "9=XXX|"
-
-        // Calculate total message size for reserve
-        size_t totalLength = bodyLength + bodyLengthFieldSize + 3 + 3 + 1; // "10=XXX|"
-        std::string tag8Str = std::to_string(headerFields[0].first);
-        totalLength += tag8Str.size() + 1 + headerFields[0].second.size() + 1; // tag 8 + '=' + value + SOH
-
-        // Reserve string capacity to avoid reallocations
-        std::string fixMessage;
-        fixMessage.reserve(totalLength);
-
-        // Append tag 8 (BeginString)
-        fixMessage += tag8Str;
-        fixMessage += '=';
-        fixMessage += headerFields[0].second;
-        fixMessage += '\x01';
-
-        // Append tag 9 (BodyLength)
-        fixMessage += "9=";
-        fixMessage += bodyLengthStr;
-        fixMessage += '\x01';
-
-        // Append remaining header fields
-        for (size_t i = 1; i < headerFields.size(); ++i) {
-            fixMessage += std::to_string(headerFields[i].first);
-            fixMessage += '=';
-            fixMessage += headerFields[i].second;
-            fixMessage += '\x01';
-        }
-
-        // Append body fields
-        for (const auto& field : bodyFields) {
-            fixMessage += std::to_string(field.first);
-            fixMessage += '=';
-            fixMessage += field.second;
-            fixMessage += '\x01';
-        }
-
-        // Calculate checksum: sum ASCII values up to this point
-        unsigned long sum = 0;
-        for (char c : fixMessage) {
-            sum += static_cast<unsigned char>(c);
-        }
-        int checksum = sum % 256;
-
-        // Append checksum field (10=XXX)
-        fixMessage += "10=";
-        std::ostringstream oss;
-        oss << std::setfill('0') << std::setw(3) << checksum;
-        fixMessage += oss.str();
-        fixMessage += '\x01';        // Send using the existing QuickFIX infrastructure
-        m_state.onOutgoing(fixMessage);
-        bool sentok = m_pResponder->send(fixMessage);
-//        if (autoSeqNum && sentok)  {
-//            m_state.incrNextSenderMsgSeqNum();
-//        }
-        std::cout << fixMessage << std::endl;
-        return sentok;
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << "[Session::sendRawDict] ERROR: " << e.what() << std::endl;
-        return false;
-    }
-}
-
 
 bool Session::sendRaw(const std::string &string) {
   if (!m_pResponder) {
@@ -1386,15 +1201,39 @@ bool Session::tryFromAppDict(const std::string &msg, const UtcTimeStamp &now) {
             return false;
         }
 
+        // Only fast-path in-sequence, non-PossDup messages. A seqnum mismatch
+        // or PossDupFlag falls through to the slow path so the session-level
+        // gap/resend logic (doTargetTooHigh/doTargetTooLow) still runs.
+        {
+            hffix::message_reader::const_iterator it = reader.begin();
+            if (!hffix::find_with_hint(reader.begin(), reader.end(),
+                                       hffix::tag_equal(hffix::tag::MsgSeqNum), it)) {
+                return false;
+            }
+            if (it->value().as_int<SEQNUM>() != getExpectedTargetNum()) {
+                return false;
+            }
+            it = reader.begin();
+            if (hffix::find_with_hint(reader.begin(), reader.end(),
+                                      hffix::tag_equal(hffix::tag::PossDupFlag), it)
+                && it->value().size() > 0 && *it->value().begin() == 'Y') {
+                return false;
+            }
+        }
+
         // Update session state
         m_state.onIncoming(msg);
-        m_state.lastReceivedTime(m_timestamper());
+        m_state.lastReceivedTime(now);
         m_state.testRequest(0);
         m_state.incrNextTargetMsgSeqNum();
 
-        // Push to queue - bypasses SWIG callback overhead
-        std::string rawMsg(reader.message_begin(), reader.message_end());
-        MessageQueue::instance().push(std::string(msgType), rawMsg, receive_time_ns);
+        // Push to queue - bypasses SWIG callback overhead.
+        // Strings are built here and moved in, so the queue lock is held
+        // only for the pointer swap and no extra copy is made.
+        MessageQueue::instance().push(
+            std::string(msgType),
+            std::string(reader.message_begin(), reader.message_end()),
+            receive_time_ns);
 
         return true;
     } catch (const std::exception &) {

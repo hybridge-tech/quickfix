@@ -94,21 +94,11 @@ namespace std {
 
 // Extend FIX::Session with our custom method
 %extend FIX::Session {
+    // Kept for feature detection (hasattr(fix.Session, "encodeAndSend"))
+    // and direct use; SendQueue also calls the C++ method internally.
     bool encodeAndSend(const std::vector<pair<int,std::string>>& headerFields,
                           const std::vector<pair<int,std::string>>& bodyFields) {
         return $self->encodeAndSend(headerFields, bodyFields);
-    }
-
-
-    bool encodeFixMessage(const std::map<std::string, std::string>& headerFields,
-                          const std::map<std::string, std::string>& bodyFields) {
-        return $self->encodeFixMessage(headerFields, bodyFields);
-    }
-
-    bool sendRawDict(std::vector<std::pair<int,std::string>> const& headerFields,
-                     std::vector<std::pair<int,std::string>> const& bodyFields,
-                     bool autoSeqNum = true) {
-        return $self->sendRawDict(headerFields, bodyFields, autoSeqNum);
     }
 
     void startSendQueue(int log_fd, int throttle_limit = 0, int spin_iterations = 1000) {
@@ -666,7 +656,12 @@ typedef FIX::SessionSettings SessionSettings;
     }
 
     PyObject* waitForMessage(int timeout_ms = 1000) {
-        auto msg = FIX::MessageQueue::instance().waitAndPop(timeout_ms);
+        // Release the GIL for the blocking wait so other Python threads
+        // (e.g. order senders) keep running; reacquire to build the tuple.
+        std::optional<FIX::MessageQueue::QueuedMessage> msg;
+        Py_BEGIN_ALLOW_THREADS
+        msg = FIX::MessageQueue::instance().waitAndPop(timeout_ms);
+        Py_END_ALLOW_THREADS
         PyObject* t = PyTuple_New(3);
         if (msg) {
             PyTuple_SET_ITEM(t, 0, PyUnicode_FromStringAndSize(msg->msgType.data(), msg->msgType.size()));

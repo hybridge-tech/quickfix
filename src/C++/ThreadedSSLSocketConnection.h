@@ -170,7 +170,7 @@ private:
 
   socket_handle m_socket;
   SSL *m_ssl;
-  char m_buffer[BUFSIZ];
+  char m_buffer[65536]; // 64 KB read buffer — fewer syscalls on bursts
 
   std::string m_address;
   int m_port;

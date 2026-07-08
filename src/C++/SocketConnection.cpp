@@ -69,6 +69,21 @@ SocketConnection::~SocketConnection() {
 bool SocketConnection::send(const std::string &message) {
   Locker l(m_mutex);
 
+  // Fast path: nothing queued, write directly to the (non-blocking) socket.
+  // Avoids the queue copy and the poll() syscall of processQueue().
+  if (m_sendQueue.empty()) {
+    ssize_t result = socket_send(m_socket, message.c_str(), message.length());
+    if (result > 0 && static_cast<size_t>(result) == message.length()) {
+      return true;
+    }
+    // Partial write or EWOULDBLOCK: queue the message and let the monitor
+    // drain it when the socket becomes writable again.
+    m_sendQueue.push_back(message);
+    m_sendLength = result > 0 ? result : 0;
+    m_pMonitor->signal(m_socket);
+    return true;
+  }
+
   m_sendQueue.push_back(message);
   processQueue();
   signal();
@@ -95,17 +110,22 @@ bool SocketConnection::processQueue() {
   }
 #endif
 
-  const std::string &msg = m_sendQueue.front();
+  // Drain as much as the socket will take, not just the front message.
+  while (!m_sendQueue.empty()) {
+    const std::string &msg = m_sendQueue.front();
 
-  ssize_t result = socket_send(m_socket, msg.c_str() + m_sendLength, msg.length() - m_sendLength);
+    ssize_t result = socket_send(m_socket, msg.c_str() + m_sendLength, msg.length() - m_sendLength);
 
-  if (result > 0) {
-    m_sendLength += result;
-  }
+    if (result > 0) {
+      m_sendLength += result;
+    }
 
-  if (m_sendLength == msg.length()) {
-    m_sendLength = 0;
-    m_sendQueue.pop_front();
+    if (m_sendLength == msg.length()) {
+      m_sendLength = 0;
+      m_sendQueue.pop_front();
+    } else {
+      break; // socket buffer full (or error) — wait for next POLLOUT
+    }
   }
 
   return !m_sendQueue.size();

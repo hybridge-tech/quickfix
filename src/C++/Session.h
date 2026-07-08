@@ -75,16 +75,6 @@ bool encodeAndSend(
     const std::vector<std::pair<int, std::string>>& headerFields,
     const std::vector<std::pair<int, std::string>>& bodyFields);
 
-
-bool encodeFixMessage(
-                        const std::map<std::string, std::string>& headerFields,
-                        const std::map<std::string, std::string>& bodyFields
-                    );
-
-bool sendRawDict(const std::vector<std::pair<int, std::string>>& headerFields,
-                 const std::vector<std::pair<int, std::string>>& bodyFields,
-                 bool autoSeqNum = true);
-
   bool sendRaw(const std::string& message);
 
   // Message queue methods for low-latency message retrieval

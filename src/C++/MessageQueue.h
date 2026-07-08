@@ -29,11 +29,14 @@ public:
         return inst;
     }
 
-    // Push a message onto the queue (called from C++ Session)
-    void push(const std::string& msgType, const std::string& raw, int64_t receive_time_ns) {
+    // Push a message onto the queue (called from C++ Session).
+    // Takes strings by value so callers can move; the queue node is built
+    // outside the lock and moved in — no allocation in the critical section.
+    void push(std::string msgType, std::string raw, int64_t receive_time_ns) {
+        QueuedMessage qm{std::move(msgType), std::move(raw), receive_time_ns};
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.push({msgType, raw, receive_time_ns});
+            m_queue.push(std::move(qm));
         }
         m_cv.notify_one();
     }

@@ -84,7 +84,9 @@ private:
   void disconnect();
 
   socket_handle m_socket;
-  char m_buffer[BUFSIZ];
+  // 64 KB read buffer (BUFSIZ is typically 8 KB): fewer recv() syscalls
+  // when market-data bursts arrive.
+  char m_buffer[65536];
 
   Parser m_parser;
   Queue m_sendQueue;
