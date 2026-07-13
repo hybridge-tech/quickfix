@@ -28,9 +28,15 @@
 #include "SessionID.h"
 #include "Utility.h"
 #include <cstdint>
+#include <cstring>
 #include <fstream>
 #include <inttypes.h>
 #include <sys/stat.h>
+
+#ifndef _WIN32
+#include <sys/mman.h>
+#include <unistd.h>
+#endif
 
 #ifdef _MSC_VER
 #define FILE_SEEK _fseeki64
@@ -91,6 +97,7 @@ FileStore::~FileStore() {
   if (m_headerFile) {
     fclose(m_headerFile);
   }
+  unmapSeqNums();
   if (m_seqNumsFile) {
     fclose(m_seqNumsFile);
   }
@@ -106,6 +113,7 @@ void FileStore::open(bool deleteFile) {
   if (m_headerFile) {
     fclose(m_headerFile);
   }
+  unmapSeqNums();
   if (m_seqNumsFile) {
     fclose(m_seqNumsFile);
   }
@@ -333,6 +341,32 @@ void FileStore::refresh() EXCEPT(IOException) {
 }
 
 void FileStore::setSeqNum() {
+#ifndef _WIN32
+  // Hot path: called once per message (incr{Sender,Target}MsgSeqNum). The
+  // fprintf+fflush pair costs two syscalls per message; instead we mmap the
+  // fixed-size (43 byte) seqnums file once and format in place. The page
+  // cache persists the write if the process dies; only a machine crash can
+  // lose it (same window as fflush, which never fsync'd either).
+  if (!m_seqNumsMap && m_seqNumsFile) {
+    int fd = fileno(m_seqNumsFile);
+    if (fd >= 0 && ftruncate(fd, sizeOf64BitSeqNumFile) == 0) {
+      void *p = mmap(nullptr, sizeOf64BitSeqNumFile, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      if (p != MAP_FAILED) {
+        m_seqNumsMap = static_cast<char *>(p);
+      }
+    }
+  }
+  if (m_seqNumsMap) {
+    char buf[sizeOf64BitSeqNumFile + 1];
+    int n = snprintf(buf, sizeof(buf), seqNumPairFileFormat.c_str(),
+                     getNextSenderMsgSeqNum(), getNextTargetMsgSeqNum());
+    if (n == sizeOf64BitSeqNumFile) {
+      memcpy(m_seqNumsMap, buf, sizeOf64BitSeqNumFile);
+      return;
+    }
+    // unexpected width: fall through to the FILE* path
+  }
+#endif
   rewind(m_seqNumsFile);
   fprintf(m_seqNumsFile, seqNumPairFileFormat.c_str(), getNextSenderMsgSeqNum(), getNextTargetMsgSeqNum());
   if (ferror(m_seqNumsFile)) {
@@ -341,6 +375,15 @@ void FileStore::setSeqNum() {
   if (fflush(m_seqNumsFile)) {
     throw IOException("Unable to flush file " + m_seqNumsFileName);
   }
+}
+
+void FileStore::unmapSeqNums() {
+#ifndef _WIN32
+  if (m_seqNumsMap) {
+    munmap(m_seqNumsMap, sizeOf64BitSeqNumFile);
+    m_seqNumsMap = nullptr;
+  }
+#endif
 }
 
 void FileStore::setSession() {

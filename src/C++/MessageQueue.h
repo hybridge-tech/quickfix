@@ -7,6 +7,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <string>
+#include <atomic>
 #include <cstdint>
 #include <optional>
 
@@ -37,6 +38,7 @@ public:
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_queue.push(std::move(qm));
+            m_size.store(m_queue.size(), std::memory_order_release);
         }
         m_cv.notify_one();
     }
@@ -50,12 +52,27 @@ public:
         }
         QueuedMessage msg = std::move(m_queue.front());
         m_queue.pop();
+        m_size.store(m_queue.size(), std::memory_order_release);
         return msg;
     }
 
     // Wait for next message with timeout (milliseconds)
     // Returns nullopt if timeout
+    // Spin-then-wait (same pattern as SendQueue): condvar wake-ups cost
+    // 100-250us on virtualized/non-pinned cores; a short pause-spin on the
+    // atomic size counter catches back-to-back messages without sleeping.
     std::optional<QueuedMessage> waitAndPop(int timeout_ms) {
+        if (m_size.load(std::memory_order_acquire) == 0) {
+            for (int i = 0; i < m_spin_iterations; ++i) {
+                if (m_size.load(std::memory_order_relaxed) > 0)
+                    break;
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+                asm volatile("pause" ::: "memory");
+#else
+                asm volatile("" ::: "memory");
+#endif
+            }
+        }
         std::unique_lock<std::mutex> lock(m_mutex);
         if (m_queue.empty()) {
             m_cv.wait_for(lock, std::chrono::milliseconds(timeout_ms), [this] {
@@ -67,8 +84,13 @@ public:
         }
         QueuedMessage msg = std::move(m_queue.front());
         m_queue.pop();
+        m_size.store(m_queue.size(), std::memory_order_release);
         return msg;
     }
+
+    // Spin iterations before falling back to condvar in waitAndPop
+    // (0 = pure condvar, previous behavior)
+    void setSpinIterations(int n) { m_spin_iterations = n > 0 ? n : 0; }
 
     // Check if queue has messages (non-blocking)
     bool hasMessages() {
@@ -94,6 +116,8 @@ private:
     std::queue<QueuedMessage> m_queue;
     std::mutex m_mutex;
     std::condition_variable m_cv;
+    std::atomic<size_t> m_size{0};
+    int m_spin_iterations = 1000;  // same default as SendQueue
 };
 
 // Free functions for C++ usage

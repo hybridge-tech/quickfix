@@ -107,6 +107,7 @@ private:
   bool readFromFile(int64_t offset, int size, std::string &msg);
   void setSeqNum();
   void setSession();
+  void unmapSeqNums();
 
   bool get(SEQNUM, std::string &) const EXCEPT(IOException);
 
@@ -122,6 +123,7 @@ private:
   FILE *m_headerFile;
   FILE *m_seqNumsFile;
   FILE *m_sessionFile;
+  char *m_seqNumsMap = nullptr;  // POSIX: seqnums file mmap'd, written in place (no syscalls per message)
 };
 } // namespace FIX
 
